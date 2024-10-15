@@ -85,6 +85,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
         const { user } = data;
         return {
           name: user.name,
+          email: user.email,
           avatar: user.image,
         };
       }

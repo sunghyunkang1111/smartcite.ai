@@ -79,26 +79,4 @@
   .breadcrumb a {
     @apply text-blue-700 no-underline;
   }
-
-  .menu {
-    @apply flex-shrink-0 p-2 pr-4 border-r border-gray-300;
-  }
-
-  .menu a {
-    @apply text-black;
-  }
-
-  .menu .active {
-    @apply font-bold;
-  }
-
-  @media (max-width: 751px) {
-    .menu {
-      @apply border-r-0 border-b border-gray-300;
-    }
-  }
-
-  .menu ul {
-    @apply pl-4;
-  }
 }
