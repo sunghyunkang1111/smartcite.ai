@@ -5,9 +5,9 @@ const authOptions = {
   providers: [
     // !!! Should be stored in .env file.
     KeycloakProvider({
-      clientId: `refine-demo`,
-      clientSecret: `refine`,
-      issuer: `https://lemur-0.cloud-iam.com/auth/realms/refine`,
+      clientId: `smartcite-client`,
+      clientSecret: `3QMUQY74n9ta7fSNRukURPSjZuegp1En`,
+      issuer: `http://localhost:8080/realms/smartcite-realm`,
       profile(profile) {
         return {
           id: profile.sub,
@@ -18,7 +18,7 @@ const authOptions = {
       },
     }),
   ],
-  secret: `UItTuD1HcGXIj8ZfHUswhYdNd40Lc325R8VlxQPUoR0=`,
+  secret: `3QMUQY74n9ta7fSNRukURPSjZuegp1En=`,
 };
 
 export default authOptions;
