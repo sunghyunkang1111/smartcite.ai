@@ -110,6 +110,13 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
               },
             },
             {
+              name: "api-keys",
+              list: "/api-keys",
+              meta: {
+                canDelete: true,
+              },
+            },
+            {
               name: "blog_posts",
               list: "/blog-posts",
               create: "/blog-posts/create",
