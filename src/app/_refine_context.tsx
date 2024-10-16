@@ -96,13 +96,19 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
 
   return (
     <>
-      <GitHubBanner />
       <RefineKbarProvider>
         <Refine
           routerProvider={routerProvider}
           dataProvider={dataProvider}
           authProvider={authProvider}
           resources={[
+            {
+              name: "cases",
+              list: "/cases",
+              meta: {
+                canDelete: true,
+              },
+            },
             {
               name: "blog_posts",
               list: "/blog-posts",
