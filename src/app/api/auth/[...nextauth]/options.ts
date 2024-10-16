@@ -18,7 +18,7 @@ const authOptions = {
       },
     }),
   ],
-  secret: `3QMUQY74n9ta7fSNRukURPSjZuegp1En=`,
+  secret: `3QMUQY74n9ta7fSNRukURPSjZuegp1En`,
 };
 
 export default authOptions;
