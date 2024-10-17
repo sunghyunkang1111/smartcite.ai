@@ -124,7 +124,7 @@ export default function BlogPostList() {
           </Table.Thead>
           <Table.Tbody>
             {apiKeys.map((caseItem: ApiKeyResponseDto) => (
-              <Table.Tr>
+              <Table.Tr key={caseItem.id}>
                 <Table.Td>{caseItem.name}</Table.Td>
                 <Table.Td>{caseItem.key}</Table.Td>
                 <Table.Td>{caseItem.lastUsedAt}</Table.Td>

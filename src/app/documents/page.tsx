@@ -84,7 +84,7 @@ export default function BlogPostList() {
     return formattedDate;
   };
   const selectedFiles = files?.map((file, index) => (
-    <div className="border p-2 my-2 rounded-md flex items-center">
+    <div className="border p-2 my-2 rounded-md flex items-center" key={index}>
       <div className="p-4 pr-4">
         <IconPaperclip size={16} color="black" />
       </div>
@@ -241,7 +241,7 @@ export default function BlogPostList() {
           </Table.Thead>
           <Table.Tbody>
             {documents?.map((d: DocumentResponseDto) => (
-              <Table.Tr>
+              <Table.Tr key={d.id}>
                 <Table.Td>
                   <a href={d.mediaUrl} download target="_blank">
                     <IconDownload size={16} color="#3d3ef1" />

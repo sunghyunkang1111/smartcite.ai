@@ -139,7 +139,7 @@ export default function BlogPostList() {
           </Table.Thead>
           <Table.Tbody>
             {cases.map((caseItem: CaseResponseDto) => (
-              <Table.Tr>
+              <Table.Tr key={caseItem.id}>
                 <Table.Td>{caseItem.title}</Table.Td>
                 <Table.Td>{caseItem.description}</Table.Td>
                 <Table.Td>{caseItem.citationsCount}</Table.Td>
