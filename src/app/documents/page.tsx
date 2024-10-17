@@ -256,7 +256,7 @@ export default function BlogPostList() {
                 <Table.Td>{d.citationsCount}</Table.Td>
                 <Table.Td>
                   <Link
-                    href={`/admin/pages/citations?documentId=${d.id}&caseId=${caseId}`}
+                    href={`/citations?documentId=${d.id}&caseId=${caseId}`}
                     className="text-[#99a9ee] hover:underline cursor-pointer"
                   >
                     View {d.citationsCount} citation(s)

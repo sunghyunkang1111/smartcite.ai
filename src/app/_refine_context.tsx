@@ -117,6 +117,13 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
               },
             },
             {
+              name: "citations",
+              list: "/citations",
+              meta: {
+                canDelete: true,
+              },
+            },
+            {
               name: "api-keys",
               list: "/api-keys",
               meta: {
