@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Input, Table } from "@mantine/core";
+import { Button, Input, Modal, Table } from "@mantine/core";
 import {
   GetManyResponse,
   useCreate,
   useDelete,
   useTable,
+  useUpdate,
 } from "@refinedev/core";
 import Link from "next/link";
+import { useDisclosure } from "@mantine/hooks";
 
 export interface CaseResponseDto {
   id: string;
@@ -21,7 +23,9 @@ export interface CaseResponseDto {
 
 export default function BlogPostList() {
   const { mutate: createMutate } = useCreate();
+  const { mutate: UpdateMutate } = useUpdate();
   const { mutate: deleteMutate } = useDelete();
+  const [opened, { open, close }] = useDisclosure(false);
   const {
     tableQueryResult: { data, isLoading },
     setCurrent,
@@ -30,22 +34,38 @@ export default function BlogPostList() {
   } = useTable<any>();
   const [newCase, setNewCase] = useState({ title: "", description: "" });
   const [cases, setCases] = useState<CaseResponseDto[]>([]);
+  const [selectedCase, setSelectedCase] = useState<string | null>(null);
   const handleInputChange = (event: any) => {
     const { name, value } = event.target;
     setNewCase({ ...newCase, [name]: value });
   };
-  const handleSubmit = async (event: any) => {
-    event.preventDefault();
-    createMutate(
-      {
-        resource: "cases",
-        values: newCase,
-      },
-      {
-        onError: (error) => console.log(error),
-        onSuccess: () => console.log("success"),
-      }
-    );
+  const handleSubmit = () => {
+    if (selectedCase) {
+      UpdateMutate(
+        {
+          resource: "cases",
+          id: selectedCase as string,
+          values: newCase,
+        },
+        {
+          onError: (error) => console.log(error),
+          onSuccess: () => close(),
+        }
+      );
+    } else {
+      createMutate(
+        {
+          resource: "cases",
+          values: newCase,
+        },
+        {
+          onError: (error) => console.log(error),
+          onSuccess: () => {
+            close();
+          },
+        }
+      );
+    }
   };
   useEffect(() => {
     if (data) {
@@ -94,27 +114,42 @@ export default function BlogPostList() {
     const updatedCases = cases.filter((c) => c.id !== caseId);
     setCases(updatedCases);
   };
+
+  const handleCreateModal = () => {
+    setSelectedCase(null);
+    setNewCase({
+      title: "",
+      description: "",
+    });
+    open();
+  };
+  const handleEditModal = (caseItem: CaseResponseDto) => {
+    setSelectedCase(caseItem.id);
+    setNewCase({
+      title: caseItem.title,
+      description: caseItem.description,
+    });
+    open();
+  };
+  const handleCloseModal = () => {
+    close();
+  };
+
   return (
     <div className="p-5">
-      <div className="text-sm">Create New Case</div>
-      <form onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-4 mt-5">
-          <Input.Wrapper description="Title">
-            <Input name="title" onChange={handleInputChange} required />
-          </Input.Wrapper>
-          <Input.Wrapper description="Description">
-            <Input name="description" onChange={handleInputChange} required />
-          </Input.Wrapper>
+      <div className="flex justify-between">
+        <div className="text-md">Create New Case</div>
+        <div className="">
           <Button
             variant="outline"
-            style={{ width: "150px", fontWeight: "normal" }}
             color="violet.7"
             type="submit"
+            onClick={handleCreateModal}
           >
             Create Case
           </Button>
         </div>
-      </form>
+      </div>
       <div className="mt-6 text-xs">
         <Table
           style={{
@@ -134,7 +169,6 @@ export default function BlogPostList() {
               <Table.Th>Citation</Table.Th>
               <Table.Th>Documents</Table.Th>
               <Table.Th>Actions</Table.Th>
-              <Table.Th></Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -154,32 +188,75 @@ export default function BlogPostList() {
                   {/* </div> */}
                 </Table.Td>
                 <Table.Td>
-                  <Button
-                    variant="outline"
-                    color="violet.7"
-                    type="submit"
-                    size="xs"
-                    onClick={() => handleExtractCitations(caseItem.id)}
-                  >
-                    Extract Citations
-                  </Button>
-                </Table.Td>
-                <Table.Td>
-                  <Button
-                    variant="outline"
-                    color="red.9"
-                    type="submit"
-                    size="xs"
-                    onClick={() => handleDelete(caseItem.id)}
-                  >
-                    Delete
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      type="submit"
+                      size="xs"
+                      onClick={() => handleExtractCitations(caseItem.id)}
+                    >
+                      Extract Citations
+                    </Button>
+                    <Button
+                      variant="outline"
+                      type="submit"
+                      size="xs"
+                      onClick={() => handleEditModal(caseItem)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      color="red.9"
+                      type="submit"
+                      size="xs"
+                      onClick={() => handleDelete(caseItem.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>
         </Table>
       </div>
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={`${selectedCase ? "Edit" : "Create"}  Case`}
+      >
+        <div className="flex flex-col gap-4">
+          <Input.Wrapper description="Title">
+            <Input
+              name="title"
+              onChange={handleInputChange}
+              required
+              value={newCase.title}
+            />
+          </Input.Wrapper>
+          <Input.Wrapper description="Description">
+            <Input
+              name="description"
+              onChange={handleInputChange}
+              required
+              value={newCase.description}
+            />
+          </Input.Wrapper>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              type="submit"
+              onClick={() => handleSubmit()}
+            >
+              {selectedCase ? "Edit" : "Create"}
+            </Button>
+            <Button variant="default" type="submit" onClick={handleCloseModal}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
