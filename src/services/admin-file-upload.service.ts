@@ -1,5 +1,5 @@
-import axios from "axios";
 import { getAccessToken } from "./auth.service";
+import axios, { AxiosProgressEvent } from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL; // Use environment variables for base URL
 
@@ -20,16 +20,29 @@ export const getMediaPresignedUrl = async () => {
   }
 };
 
-export const uploadFile = async (file: File, url: string) => {
+export const uploadFile = async (
+  file: File,
+  url: string,
+  onProgress: (progressEvent: AxiosProgressEvent) => void,
+  onCancel: (cancelUpload: () => void) => void
+) => {
+  const controller = new AbortController()
+  onCancel(() => controller.abort());
   try {
     await axios.put(url, file, {
       headers: {
         "Content-Type": file.type,
       },
+      onUploadProgress: onProgress,
+      signal: controller.signal,
     });
   } catch (err) {
-    console.error(err);
-    throw new Error("Error uploading file");
+    if (axios.isCancel(err)) {
+      console.log('Upload cancelled');
+    } else {
+      console.error(err);
+      throw new Error("Error uploading file");
+    }
   }
 };
 

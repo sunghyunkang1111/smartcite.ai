@@ -15,3 +15,10 @@ export const getDateStringFromTimestamp = (ts: number) => {
   const formattedDate = date.toLocaleString("en-US", options);
   return formattedDate;
 };
+
+export const formatFileSize = (bytes: number): string => {
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes === 0) return '0 Bytes';
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
+}
