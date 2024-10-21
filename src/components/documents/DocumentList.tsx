@@ -149,7 +149,6 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   const handleFileChange = async (fs: File[]) => {
     const newDocuments: DocumentResponseDto[] = [];
-    const cancelControllers: Array<() => void> = [];
     setFiles(fs);
     setUploadingFiles(
       fs.map((_, i) => ({
@@ -162,19 +161,12 @@ const DocumentList: React.FC<DocumentListProps> = ({
     const uploadPromises = fs.map(async (file, i) => {
       try {
         const presignedUrl = await getMediaPresignedUrl();
-        await uploadFile(
-          file,
-          presignedUrl.uploadUrl,
-          (progressEvent) => {
-            const percent = Math.round(
-              (progressEvent.loaded * 99) / (progressEvent.total || 1)
-            );
-            updateUploadProgress(i, percent);
-          },
-          (cancelUpload) => {
-            cancelControllers[i] = cancelUpload; // Store the cancel function for this file
-          }
-        );
+        await uploadFile(file, presignedUrl.uploadUrl, (progressEvent) => {
+          const percent = Math.round(
+            (progressEvent.loaded * 99) / (progressEvent.total || 1)
+          );
+          updateUploadProgress(i, percent);
+        });
         const createdDocument = await createDocument(
           caseId,
           presignedUrl.id,
@@ -198,16 +190,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
     setCancelControllers(cancelControllers);
   };
 
-  const cancelUpload = (i: number) => {
-    if (cancelControllers[i]) {
-      cancelControllers[i](); // Invoke the cancel function to abort the upload
-      setUploadingFiles((prev) => prev.filter((uf) => uf.index !== i)); // Update state to remove canceled file
-    }
-  };
-
-  useEffect(() => {
-    console.log(uploadingFiles);
-  }, [uploadingFiles]);
+  const cancelUpload = (i: number) => {};
 
   return (
     <div className="relative">

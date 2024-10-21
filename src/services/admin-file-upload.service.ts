@@ -23,26 +23,18 @@ export const getMediaPresignedUrl = async () => {
 export const uploadFile = async (
   file: File,
   url: string,
-  onProgress: (progressEvent: AxiosProgressEvent) => void,
-  onCancel: (cancelUpload: () => void) => void
+  onProgress: (progressEvent: AxiosProgressEvent) => void
 ) => {
-  const controller = new AbortController()
-  onCancel(() => controller.abort());
   try {
     await axios.put(url, file, {
       headers: {
         "Content-Type": file.type,
       },
       onUploadProgress: onProgress,
-      signal: controller.signal,
     });
   } catch (err) {
-    if (axios.isCancel(err)) {
-      console.log('Upload cancelled');
-    } else {
-      console.error(err);
-      throw new Error("Error uploading file");
-    }
+    console.error(err);
+    throw new Error("Error uploading file");
   }
 };
 
