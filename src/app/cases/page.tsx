@@ -189,6 +189,12 @@ export default function BlogPostList() {
                 </Table.Td>
                 <Table.Td>
                   <div className="flex gap-2">
+                    <Link
+                      href={`/exhibits?caseId=${caseItem.id}`}
+                      className="text-[#228be8] border border-[#228be8] cursor-pointer flex items-center justify-center px-4 rounded text-xs"
+                    >
+                      View Exhibits
+                    </Link>
                     <Button
                       variant="outline"
                       type="submit"
