@@ -17,8 +17,6 @@ import {
   useOne,
   useParsed,
 } from "@refinedev/core";
-import Link from "next/link";
-import DocumentList from "@components/documents/DocumentList";
 import { DocType } from "@utils/util.constants";
 import { DocumentResponseDto } from "../../types/types";
 import FileUploadDropzone from "@components/documents/FileUploadDropzone";
@@ -32,9 +30,7 @@ import {
   IconEyeDown,
   IconLayersSubtract,
   IconMinus,
-  IconPaperclip,
   IconPlus,
-  IconScript,
   IconTrash,
 } from "@tabler/icons-react";
 import {
@@ -159,7 +155,7 @@ export default function BlogPostList() {
       {
         onError: (error) => console.log(error),
         onSuccess: (res) => {
-          setLoading(true);
+          setLoading(false);
           refetchDocuments();
         },
       }
@@ -191,11 +187,12 @@ export default function BlogPostList() {
 
   return (
     <div className="p-5 h-full flex flex-col">
-      <Link href={"/cases"} className="text-[#551a8b] underline text-sm">
-        &lt; All cases
-      </Link>
-      <div className="text-sm mt-5">Case {caseData?.data.title}</div>
-      <div className="flex justify-end">
+      <div className="flex justify-between">
+        <div className="text-3xl text-black">
+          {caseData?.data.title}
+          <span className="text-sm ml-3 mr-1">/</span>
+          <span className="text-sm">All documents</span>
+        </div>
         <Button
           leftSection={
             opened ? <IconMinus size={14} /> : <IconPlus size={14} />
@@ -249,13 +246,13 @@ export default function BlogPostList() {
             .map((doc, _i) => (
               <div
                 key={doc.id}
-                className={`border border-t-0 p-4 border-r-0 flex justify-between items-center cursor-pointer
+                className={`border p-4 border-r-0 flex justify-between items-center cursor-pointer
                   ${
                     selectedMainDocumentId === doc.id
                       ? "text-[#099268]"
                       : "text-[#6e6e6e]"
                   } 
-                  ${_i === 0 ? "border-t" : ""}`}
+                  ${_i === 0 ? "border-t" : "border-t-0"}`}
               >
                 <div
                   onClick={() => setSelectedMainDocumentId(doc.id)}
