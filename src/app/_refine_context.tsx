@@ -85,6 +85,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
         const { user } = data;
         return {
           name: user.name,
+          email: user.email,
           avatar: user.image,
         };
       }
@@ -95,7 +96,6 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
 
   return (
     <>
-      <GitHubBanner />
       <RefineKbarProvider>
         <Refine
           routerProvider={routerProvider}
@@ -103,21 +103,29 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
           authProvider={authProvider}
           resources={[
             {
-              name: "blog_posts",
-              list: "/blog-posts",
-              create: "/blog-posts/create",
-              edit: "/blog-posts/edit/:id",
-              show: "/blog-posts/show/:id",
+              name: "cases",
+              list: "/dashboard",
               meta: {
                 canDelete: true,
               },
             },
             {
-              name: "categories",
-              list: "/categories",
-              create: "/categories/create",
-              edit: "/categories/edit/:id",
-              show: "/categories/show/:id",
+              name: "cases",
+              list: "/cases",
+              meta: {
+                canDelete: true,
+              },
+            },
+            {
+              name: "documents",
+              list: "/documents",
+              meta: {
+                canDelete: true,
+              },
+            },
+            {
+              name: "api-keys",
+              list: "/api-keys",
               meta: {
                 canDelete: true,
               },
