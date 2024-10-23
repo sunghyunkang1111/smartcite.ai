@@ -298,7 +298,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
                     <div
                       className={`${
                         selectedMainDocumentId === d.id
-                          ? "text-[#099268]"
+                          ? "text-[#3040d6]"
                           : "text-[#6e6e6e]"
                       } cursor-pointer font-bold`}
                     >

@@ -48,12 +48,12 @@ export default function BlogPostList() {
   return (
     <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
       <div className="p-5 h-full flex flex-col">
-        <Link href={"/cases"} className="text-[#551a8b] underline text-sm">
-          &lt; All cases
-        </Link>
-        <div className="text-sm mt-5">Case {caseData?.data.title}</div>
-
-        <div className="relative">
+        <div className="text-3xl text-black">
+          {caseData?.data.title}
+          <span className="text-sm ml-3 mr-1">/</span>
+          <span className="text-sm">All documents</span>
+        </div>
+        <div className="relative pt-4">
           <LoadingOverlay
             visible={caseLoading || documentLoading}
             zIndex={1000}
@@ -71,7 +71,7 @@ export default function BlogPostList() {
                   className={`border p-4 border-r-0 flex justify-between items-center cursor-pointer
                   ${
                     selectedMainDocument?.id === doc.id
-                      ? "text-[#099268]"
+                      ? "text-[#3040d6]"
                       : "text-[#6e6e6e]"
                   } 
                   ${_i === 0 ? "border-t" : "border-t-0"}`}

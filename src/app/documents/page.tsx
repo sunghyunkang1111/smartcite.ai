@@ -249,7 +249,7 @@ export default function BlogPostList() {
                 className={`border p-4 border-r-0 flex justify-between items-center cursor-pointer
                   ${
                     selectedMainDocumentId === doc.id
-                      ? "text-[#099268]"
+                      ? "text-[#3040d6]"
                       : "text-[#6e6e6e]"
                   } 
                   ${_i === 0 ? "border-t" : "border-t-0"}`}

@@ -151,7 +151,7 @@ export default function BlogPostList() {
                 <div
                   className={`${
                     selectedExhibitDocumentId === exh.id
-                      ? "text-[#099268]"
+                      ? "text-[#3040d6]"
                       : "text-[#6e6e6e]"
                   } text-sm font-bold cursor-pointer flex gap-2`}
                   onClick={() => handleSelectExhibitDocument(exh.id)}
