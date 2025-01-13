@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Button, LoadingOverlay, Menu, Loader } from "@mantine/core";
+import { Button, LoadingOverlay, Loader } from "@mantine/core";
 import {
   useCreate,
   useDelete,
@@ -13,6 +13,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { Layout as BaseLayout } from "@/components/layout";
 import {
   IconCheck,
+  IconChevronRight,
   IconClick,
   IconRefresh,
   IconTrash,
@@ -284,7 +285,7 @@ const CaseEditPage = () => {
     setUploadingFiles(new Map());
   };
 
-  const handleMenuItemClick = () => fileInputRef.current?.click();
+  // const handleMenuItemClick = () => fileInputRef.current?.click();
 
   const handleDeleteDocument = async (doc: IDocument) => {
     setLoading(true);
@@ -396,7 +397,7 @@ const CaseEditPage = () => {
               >
                 Extract citations
               </Button>
-              <Menu shadow="md" width={200}>
+              {/* <Menu shadow="md" width={200}>
                 <Menu.Target>
                   <Button
                     variant="default"
@@ -414,7 +415,7 @@ const CaseEditPage = () => {
                     Upload exhibit
                   </Menu.Item>
                 </Menu.Dropdown>
-              </Menu>
+              </Menu> */}
             </div>
           </div>
           <div className="grid grid-cols-12 text-sm gap-1 flex-1 pt-6 text-[#989898]">
@@ -449,7 +450,7 @@ const CaseEditPage = () => {
                       {getGeneralStateText(doc)}
                     </div>
                   </div>
-                  <div className="w-20" onClick={(e) => e.stopPropagation()}>
+                  <div className="px-4 flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <DeleteConfirmModal
                       onDelete={() => handleDeleteDocument(doc)}
                       trigger={
@@ -458,6 +459,7 @@ const CaseEditPage = () => {
                         </div>
                       }
                     />
+                    <IconChevronRight size={20} />
                   </div>
                 </div>
               ))}
@@ -501,7 +503,7 @@ const CaseEditPage = () => {
                   <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
                     <IconUpload size={40} color="black" />
                     <div className="text-base text-black mt-3">
-                      Upload Document
+                      Upload Citing Document
                     </div>
                     <div className="text-[#7c7c7c] text-center px-4">
                       Drag your file into this box or click &quot;Upload
@@ -603,7 +605,7 @@ const CaseEditPage = () => {
                     <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
                       <IconUpload size={40} color="black" />
                       <div className="text-base text-black mt-3">
-                        Upload Document
+                        Upload Exhibits
                       </div>
                       <div className="text-[#7c7c7c] text-center px-4">
                         Drag your file into this box or click &quot;Upload

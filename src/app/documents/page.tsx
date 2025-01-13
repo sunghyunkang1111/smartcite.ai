@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { Input, LoadingOverlay } from "@mantine/core";
-import { DatePicker, notification } from "antd";
+import { notification } from "antd";
 import type { TableColumnType } from "antd";
 import { useDelete, useNavigation, useOne, useTable } from "@refinedev/core";
-import dayjs from "dayjs";
 import { Layout as BaseLayout } from "@/components/layout";
 import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { IconDownload, IconSearch, IconTrash } from "@tabler/icons-react";
@@ -20,7 +19,6 @@ import AddDocument from "@/components/documents/AddDocument";
 import { useSearchParams } from "next/navigation";
 import Link from "antd/es/typography/Link";
 
-const { RangePicker } = DatePicker;
 
 export default function DocumentList() {
   // State
@@ -33,10 +31,10 @@ export default function DocumentList() {
   const [mainDocuments, setMainDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selMDoc, setSelMDoc] = useState<any>();
-  const [dateRange, setDateRange] = useState<[any, any] | null>([
-    dayjs().subtract(6, "month"),
-    dayjs(),
-  ]);
+  // const [dateRange, setDateRange] = useState<[any, any] | null>([
+  //   dayjs().subtract(6, "month"),
+  //   dayjs(),
+  // ]);
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
 
   // Hooks
@@ -254,15 +252,15 @@ export default function DocumentList() {
     let filteredDocs = documents.filter((doc) => doc.type === DocType.MAIN);
 
     // Date range filter
-    if (dateRange?.[0] && dateRange?.[1]) {
-      filteredDocs = filteredDocs.filter((doc) => {
-        const docDate = dayjs(doc.createdAt);
-        return (
-          docDate.isAfter(dateRange[0]) &&
-          docDate.isBefore(dateRange[1].add(1, "day"))
-        );
-      });
-    }
+    // if (dateRange?.[0] && dateRange?.[1]) {
+    //   filteredDocs = filteredDocs.filter((doc) => {
+    //     const docDate = dayjs(doc.createdAt);
+    //     return (
+    //       docDate.isAfter(dateRange[0]) &&
+    //       docDate.isBefore(dateRange[1].add(1, "day"))
+    //     );
+    //   });
+    // }
 
     // Search filter
     if (searchKey) {
@@ -283,7 +281,7 @@ export default function DocumentList() {
     }));
 
     setMainDocuments(enrichedDocs);
-  }, [documents, dateRange, searchKey]);
+  }, [documents, searchKey]);
 
   useEffect(() => {
     if (mainDocuments.length == 0) return;
@@ -343,7 +341,7 @@ export default function DocumentList() {
                 },
               }}
             />
-            <RangePicker
+            {/* <RangePicker
               style={{
                 border: "none",
                 backgroundColor: "#fff",
@@ -351,7 +349,7 @@ export default function DocumentList() {
               }}
               value={dateRange}
               onChange={(dates) => setDateRange(dates)}
-            />
+            /> */}
           </div>
         </div>
 

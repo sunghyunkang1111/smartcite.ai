@@ -5,13 +5,13 @@ export const menuItems = [
   {
     key: "cases",
     icon: <IconScale />,
-    label: "Matter Management",
+    label: "Matters",
     route: "/cases/edit",
   },
   {
     key: "documents",
     icon: <IconNotes />,
-    label: "Document Management",
+    label: "Citing Document",
     route: "/documents",
   },
   {

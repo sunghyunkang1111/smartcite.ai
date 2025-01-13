@@ -1,41 +1,32 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Input, LoadingOverlay } from "@mantine/core";
-import { notification, type TableColumnType } from "antd";
-import { useNavigation, useOne, useTable } from "@refinedev/core";
+import { LoadingOverlay } from "@mantine/core";
+import { notification, Table } from "antd";
+import { useOne, useTable } from "@refinedev/core";
 import { Layout as BaseLayout } from "@/components/layout";
-import { IconClick, IconEye, IconSearch } from "@tabler/icons-react";
+import { IconClick } from "@tabler/icons-react";
 import { ICase, ICitation, IDocument } from "@/types/types";
 import { DocType } from "@/utils/util.constants";
-import MyTable from "@/components/common/MyTable";
-import { useDisclosure } from "@mantine/hooks";
 import AddExhibit from "@/components/exhibit/AddExhibit";
-import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
 // import PdfViewer from "@components/common/PdfViewer";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import CitationsList from "@components/exhibit/CitationsList";
 import dynamic from "next/dynamic";
 
-const PdfViewer = dynamic(() => import("@components/common/PdfViewer"), { ssr: false });
+const PdfViewer = dynamic(() => import("@components/common/PdfViewer"), {
+  ssr: false,
+});
 
 export default function DocumentList() {
-  // State Management
-  const { push } = useNavigation();
   const searchParams = useSearchParams();
   const caseId = searchParams.get("caseId");
-  const documentId = searchParams.get("documentId");
-  const [searchKey, setSearchKey] = useState("");
   const [documents, setDocuments] = useState<IDocument[]>([]);
-  const [selExh, setSelExh] = useState<any>();
+  const [citationLoading, setCitationLoading] = useState(false);
   const [citations, setCitations] = useState<ICitation[]>([]);
-  const [mainDocuments, setMainDocuments] = useState<any[]>([]);
+  const [tableData, setTableData] = useState<any[]>([]);
   const [selDoc, setSelDoc] = useState<any>();
-  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
-    useDisclosure(false);
-  const [expandedMainDocs, setExpandedMainDocs] = useState<string[]>([]);
+
   const { data: caseData, isLoading: caseLoading } = useOne<ICase>({
     resource: "cases",
     id: caseId || "",
@@ -54,73 +45,13 @@ export default function DocumentList() {
     },
   }).tableQueryResult;
 
-  const handleDocumentClick = (record: any) => {
-    setSelDoc(record);
-  };
-
-  const handleViewDetails = (record: any) => {
-    setSelExh(record);
-    openDrawer();
-  };
-
-  const getCitedInMainDocuments = (exhDocId: string) => {
-    const exhDoc = documents.find((doc) => doc.id === exhDocId);
-    if (!exhDoc) return [];
-
-    const citationsByDoc = citations
-      .filter((citation) => citation.destinationDocumentId === exhDocId)
-      .reduce((acc: { [key: string]: string[] }, citation) => {
-        const sourceDocId = citation.sourceDocumentId;
-        if (!acc[sourceDocId]) {
-          acc[sourceDocId] = [];
-        }
-        acc[sourceDocId].push(citation.sourceText);
-        return acc;
-      }, {});
-
-    const citedInMainDocInfos = Object.entries(citationsByDoc).map(
-      ([sourceDocId, sourceTexts]) => ({
-        doc: documents.find((d) => d.id === sourceDocId),
-        sourceTexts: sourceTexts,
-      })
-    );
-    return citedInMainDocInfos;
-  };
-  useEffect(() => {
-    if (!caseId) {
-      push(`/cases`);
-    }
-  }, [caseId]);
-  // useEffect(() => {
-  //   if (caseData) {
-  //     setCases(caseData.items as ICase[]);
-  //     const getDocs = async () => {
-  //       setDocLoading(true);
-  //       try {
-  //         for (const c of caseData.items) {
-  //           const docs = (await getDocumentsByCaseId(c.id)) as any;
-  //           setDocuments((prev) => [...prev, ...(docs?.items || [])]);
-  //         }
-  //       } catch (error) {
-  //         console.error("Error fetching documents:", error);
-  //         // Optionally add error handling UI feedback here
-  //       } finally {
-  //         setDocLoading(false);
-  //       }
-  //     };
-  //     getDocs();
-  //   }
-  // }, [caseData]);
-
-  const getMDocs = () => documents.filter((doc) => doc.type === DocType.MAIN);
-  const [citationLoading, setCitationLoading] = useState(false);
-
   useEffect(() => {
     if (documentData) {
       setDocuments(documentData.items as IDocument[]);
     }
   }, [documentData]);
 
+  useEffect(() => {}, []);
   useEffect(() => {
     if (documents.length > 0 && !docLoading) {
       const fetchCitations = async () => {
@@ -139,6 +70,7 @@ export default function DocumentList() {
               setCitations((prev) => [...prev, ...newCitations]);
             }
           }
+
           setCitationLoading(false);
         } catch (error) {
           setCitationLoading(false);
@@ -154,226 +86,98 @@ export default function DocumentList() {
   }, [documents, docLoading]);
 
   useEffect(() => {
-    if (docLoading || citationLoading) {
-      return;
-    }
-    let filteredDocs = documents.filter((doc) => doc.type === DocType.MAIN);
-
-    // Search filter
-    if (searchKey) {
-      const searchLower = searchKey.toLowerCase();
-      filteredDocs = filteredDocs.filter(
-        (doc: any) =>
-          doc.title.toLowerCase().includes(searchLower) ||
-          doc.caseTitle?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Enrich documents with additional data
-    const enrichedDocs = filteredDocs.map((doc) => ({
-      key: doc.id,
-      ...doc,
-      noExhibits: documents.filter((d) => d.mainDocumentId === doc.id).length,
-      exhibits: documents.filter((d) => d.mainDocumentId === doc.id),
-    }));
-
-    setMainDocuments(
-      enrichedDocs.map((m) => ({
-        ...m,
-        key: m.id,
-        citedInMainDocuments: getCitedInMainDocuments(m.id),
-        exhibits: documents
-          .filter((d) => d.mainDocumentId === m.id)
-          .map((exh) => ({
-            ...exh,
-            key: exh.id,
-            citedInMainDocuments: getCitedInMainDocuments(exh.id),
-          })),
+    const processedData = citations
+      .map((c) => ({
+        key: c.id,
+        destinationDocumentName: documents.find(
+          (d) => d.id == c.destinationDocumentId
+        )?.title,
+        sourceDocumentName: documents.find((d) => d.id == c.sourceDocumentId)
+          ?.title,
+        ...c,
       }))
-    );
-  }, [documents, searchKey, docLoading, citationLoading]);
-
-  useEffect(() => {
-    if (mainDocuments.length == 0) return;
-    if (documentId) {
-      setExpandedMainDocs([documentId]);
-    } else {
-      setExpandedMainDocs([mainDocuments[0].id]);
-      setSelDoc(mainDocuments[0].exhibits[0]);
+      .sort((a, b) => {
+        if (a.destinationDocumentId < b.destinationDocumentId) return -1;
+        if (a.destinationDocumentId > b.destinationDocumentId) return 1;
+        return 0;
+      });
+    if (processedData.length > 0) {
+      setSelDoc(processedData[0].destinationDocumentId);
+      setTableData(processedData);
     }
-  }, [documentId, mainDocuments]);
+  }, [citations]);
 
-  useEffect(() => {
-    if (selDoc) {
-      console.log(selDoc.mediaUrl);
-    }
-  }, [selDoc]);
+  const getMDocs = () => documents.filter((doc) => doc.type === DocType.MAIN);
 
-  // useEffect(() => {
-  //   if (
-  //     !documents ||
-  //     !citations ||
-  //     caseLoading ||
-  //     citationLoading ||
-  //     docLoading
-  //   )
-  //     return;
-  //   setTableCases(
-  //     cases
-  //       .filter((c) => c.title.toLowerCase().includes(searchKey.toLowerCase()))
-  //       .map((c) => ({
-  //         key: c.id,
-  //         main: documents
-  //           .filter((d) => d.caseId === c.id && d.type === DocType.MAIN)
-  //           .map((m) => ({
-  //             ...m,
-  //             key: m.id,
-  //             exhibits: documents
-  //               .filter((d) => d.caseId === c.id && d.type === DocType.EXHIBIT)
-  //               .map((exh) => ({
-  //                 ...exh,
-  //                 key: exh.id,
-  //                 citedInMainDocuments: getCitedInMainDocuments(exh.id),
-  //               })),
-  //           })),
-  //         ...c,
-  //       }))
-  //   );
-  // }, [
-  //   cases,
-  //   documents,
-  //   searchKey,
-  //   citations,
-  //   caseLoading,
-  //   citationLoading,
-  //   docLoading,
-  // ]);
+  // Columns configuration for the table
+  const columns = [
+    {
+      title: "Cited Document(DocID)",
+      dataIndex: "destinationDocumentName",
+      key: "destinationDocumentName",
+      render: (text: string, record: any, index: number) => {
+        const prevRecord = index > 0 ? tableData[index - 1] : null;
 
-  const getMainDocColumns = (): TableColumnType<any>[] => [
-    {
-      title: "#",
-      dataIndex: "",
-      key: "index",
-      width: "5%",
-      render: (_, __, index) => <div className="">{index + 1}</div>,
-    },
-    {
-      title: "Main Document",
-      dataIndex: "title",
-      key: "title",
-      width: "25%",
-      render: (title: string, record: any) => (
-        <div
-          className={`border-l-4 pl-2 py-2 ${
-            selDoc?.id === record.id ? "border-l-[#056cf3]" : ""
-          }`}
-        >
-          <Link
-            href={`/documents?caseId=${record.caseId}&documentId=${record.id}`}
-            className={`underline text-[#056cf3] break-all  `}
-          >
-            {title}
-          </Link>
-        </div>
-      ),
-    },
-    {
-      title: "No. Exhibits",
-      dataIndex: "noExhibits",
-      key: "noExhibits",
-      width: "10%",
-      render: (_, record) => <div>{record.exhibits.length}</div>,
-    },
-    {
-      title: "Cited in - As",
-      dataIndex: "citedInMainDocuments",
-      key: "citedInMainDocuments",
-      render: (citedInMainDocuments: any[]) => {
-        return (
-          <>
-            <CitationsList citations={citedInMainDocuments} />
-          </>
-        );
+        // If this is the first occurrence or different from previous
+        if (
+          !prevRecord ||
+          prevRecord.destinationDocumentId !== record.destinationDocumentId
+        ) {
+          let rowSpan = 1;
+          let i = index + 1;
+          while (
+            i < tableData.length &&
+            tableData[i].destinationDocumentId === record.destinationDocumentId
+          ) {
+            rowSpan++;
+            i++;
+          }
+          return {
+            children: (
+              <span
+                onClick={() => setSelDoc(record.destinationDocumentId)}
+                className={`cursor-pointer hover:text-blue-500 ${
+                  selDoc == record.destinationDocumentId
+                    ? "text-blue-500 font-bold"
+                    : ""
+                }`}
+              >
+                {text}
+              </span>
+            ),
+            props: { rowSpan },
+          };
+        }
+        // Return null for cells that should be merged
+        return {
+          props: { rowSpan: 0 },
+        };
       },
     },
     {
-      title: "Citations",
-      dataIndex: "citationsCount",
-      key: "citationsCount",
-      width: "10%",
+      title: "Cited As",
+      dataIndex: "sourceText",
+      key: "sourceText",
+    },
+    {
+      title: "In Citing Document",
+      dataIndex: "sourceDocumentName",
+      key: "sourceDocumentName",
     },
   ];
 
-  const getExhibitsColumns = (): TableColumnType<any>[] => [
-    {
-      title: "#",
-      dataIndex: "",
-      key: "index",
-      width: "5%",
-      render: (_, __, index) => <div className="pb-9">{index + 1}</div>,
-    },
-    {
-      title: "Exhibit Name-Description",
-      dataIndex: "title",
-      key: "title",
-      width: "35%",
-      render: (title: string, record: any) => (
-        <div
-          className={`text-xs border-l-4 pl-2 ${
-            selDoc?.id === record.id ? "border-l-[#056cf3]" : ""
-          }`}
-        >
-          <div className="underline text-[#056cf3]">{title}</div>
-          <div className="text-[#989898] line-clamp-2 text-xs mt-1 break-all">
-            Document summary is being generated...
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "Cited in - As",
-      dataIndex: "citedInMainDocuments",
-      key: "citedInMainDocuments",
-      render: (citedInMainDocuments: any[]) => (
-        <CitationsList citations={citedInMainDocuments} />
-      ),
-    },
-    {
-      title: "Actions",
-      dataIndex: "actions",
-      key: "actions",
-      render: (_, record) => (
-        <div
-          className="hover:text-[#056cf3] cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleViewDetails(record);
-          }}
-        >
-          <IconEye size={18} />
-        </div>
-      ),
-    },
-  ];
+  // Process data to add rowSpan information
+
   return (
     <BaseLayout>
-      <LoadingOverlay
-        visible={caseLoading || citationLoading}
-        zIndex={1000}
-        loaderProps={{ color: "black", type: "bars" }}
-      />
-
       <div className="p-6 flex flex-col h-full">
-        {/* Header */}
         <div className="flex justify-between">
           <div>
             <div className="text-lg text-[#292929]">
               {matter && (
-                <>
-                  <span className="text-xl font-semibold mr-2">
-                    {matter?.title}/
-                  </span>
-                </>
+                <span className="text-xl font-semibold mr-2">
+                  {matter?.title}/
+                </span>
               )}
               Exhibits
             </div>
@@ -384,117 +188,27 @@ export default function DocumentList() {
           <AddExhibit
             cases={[matter]}
             setDocuments={setDocuments}
-            mainDocuments={mainDocuments}
+            mainDocuments={getMDocs()}
           />
         </div>
-
-        {/* Search Bar */}
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search"
-              leftSection={<IconSearch size={18} color="#adb5bd" />}
-              value={searchKey}
-              onChange={(e) => setSearchKey(e.target.value)}
-              styles={{
-                input: {
-                  backgroundColor: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                },
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-3 mt-6 gap-4 flex-1">
+        <div className="grid grid-cols-3 mt-6 gap-4 flex-1 relative">
+          <LoadingOverlay
+            visible={caseLoading || citationLoading}
+            zIndex={1000}
+            loaderProps={{ color: "black", type: "bars" }}
+          />
           <div
             className={`bg-white rounded-xl pb-10 ${
               documents.length > 0 ? "col-span-2" : "col-span-3"
             }`}
           >
-            {/* <MyTable
-              columns={getMainColumns()}
-              dataSource={tableCases}
+            <Table
+              dataSource={tableData}
+              columns={columns}
+              bordered
               pagination={false}
-              expandable={{
-                expandedRowKeys: expandedCases,
-                onExpand: (expanded: boolean, record: any) => {
-                  setExpandedCases(
-                    expanded
-                      ? [...expandedCases, record.key]
-                      : expandedCases.filter((key) => key !== record.key)
-                  );
-                },
-                expandedRowRender: (record: any) => (
-                  <div className="ml-10 my-1 border rounded-lg bg-white pb-4 shadow-sm">
-                    <MyTable
-                      columns={getMainDocColumns()}
-                      dataSource={record.main}
-                      pagination={false}
-                      expandable={{
-                        expandedRowKeys: expandedMainDocs,
-                        onExpand: (expanded: boolean, record: any) => {
-                          setExpandedMainDocs(
-                            expanded
-                              ? [...expandedMainDocs, record.key]
-                              : expandedMainDocs.filter(
-                                  (key) => key !== record.key
-                                )
-                          );
-                        },
-                        expandedRowRender: (record: any) => (
-                          <div className="ml-10 my-1 border rounded-lg bg-white pb-4">
-                            <MyTable
-                              columns={getExhibitsColumns()}
-                              dataSource={record.exhibits}
-                              pagination={false}
-                              onRow={(record: any) => ({
-                                onClick: () => handleExhibitClick(record),
-                              })}
-                            />
-                          </div>
-                        ),
-                      }}
-                    />
-                  </div>
-                ),
-              }}
-            /> */}
-            <MyTable
-              columns={getMainDocColumns()}
-              dataSource={mainDocuments}
-              pagination={false}
-              onRow={(record: any) => ({
-                onClick: () => handleDocumentClick(record),
-              })}
-              expandable={{
-                expandedRowKeys: expandedMainDocs,
-                onExpand: (expanded: boolean, record: any) => {
-                  setExpandedMainDocs(
-                    expanded
-                      ? [...expandedMainDocs, record.key]
-                      : expandedMainDocs.filter((key) => key !== record.key)
-                  );
-                },
-                expandedRowRender: (record: any) => (
-                  <div className="ml-10 my-1 border rounded-lg bg-white pb-4">
-                    <MyTable
-                      columns={getExhibitsColumns()}
-                      dataSource={record.exhibits}
-                      pagination={false}
-                      onRow={(record: any) => ({
-                        onClick: () => handleDocumentClick(record),
-                      })}
-                    />
-                  </div>
-                ),
-              }}
             />
           </div>
-
-          {/* Preview Panel */}
           <div
             className={`bg-transparent rounded-xl relative ${
               documents.length > 0 ? "col-span-1" : "hidden"
@@ -509,18 +223,13 @@ export default function DocumentList() {
                 </div>
               </div>
             ) : (
-              <PdfViewer mediaUrl={selDoc?.mediaUrl} />
+              <PdfViewer
+                mediaUrl={documents.find((d) => d.id == selDoc)?.mediaUrl}
+              />
             )}
           </div>
         </div>
       </div>
-
-      <ExhibitDetailDrawer
-        cases={[matter]}
-        opened={drawerOpened}
-        close={closeDrawer}
-        selExh={selExh}
-      />
     </BaseLayout>
   );
 }

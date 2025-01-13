@@ -161,7 +161,7 @@ const GeneralInformationWithHeader = ({
           <IconArrowLeft color="#292929" size={24} />
         </Link>
         <div className="text-xl font-semibold text-[#292929]">
-          {caseData?.title || "N/A"}
+          {`Documents and Exhibits in ${caseData?.title}` || "N/A"}
         </div>
       </div>
       <div className="flex gap-2">

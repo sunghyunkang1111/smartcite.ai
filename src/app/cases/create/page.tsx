@@ -1,25 +1,21 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   MultiSelect,
   Select as MantineSelect,
   TextInput,
   LoadingOverlay,
-  Menu,
-  Loader,
+  // Loader,
 } from "@mantine/core";
 import { useGetIdentity, useNavigation } from "@refinedev/core";
 import Link from "next/link";
 import { Layout as BaseLayout } from "@/components/layout";
 import {
   IconArrowLeft,
-  IconCheck,
-  IconClick,
-  IconTrash,
-  IconUpload,
-  IconX,
+  // IconCheck,
+  // IconX,
 } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
 import {
@@ -30,47 +26,42 @@ import {
   CaseStates,
   CaseStateTextColor,
   ClientRoles,
-  DocType,
 } from "@/utils/util.constants";
 import { notification, Select } from "antd";
-import { IDocument } from "@/types/types";
-import {
-  uploadFile,
-  getMediaPresignedUrl,
-} from "@services/admin-file-upload.service";
-import { useDisclosure } from "@mantine/hooks";
-import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
-import EmptyDropzone from "@components/case/edit/EmptyDropzone";
-import { Dropzone } from "@mantine/dropzone";
-import { createDocument } from "@services/document.service";
-import { v4 as uuidv4 } from "uuid";
+// import { IDocument } from "@/types/types";
+// import {
+//   uploadFile,
+//   getMediaPresignedUrl,
+// } from "@services/admin-file-upload.service";
+// import { useDisclosure } from "@mantine/hooks";
+// import { v4 as uuidv4 } from "uuid";
 import { createCase } from "@services/case.service";
-import UploadExhibitModal from "@components/case/UploadExhibitModal";
+// import UploadExhibitModal from "@components/case/UploadExhibitModal";
 
 // Constants
-const UploadingState = {
-  DOING: "DOING",
-  SUCCESS: "SUCCESS",
-  FAIL: "FAIL",
-};
+// const UploadingState = {
+//   DOING: "DOING",
+//   SUCCESS: "SUCCESS",
+//   FAIL: "FAIL",
+// };
 
-const PANEL_CONFIGS = {
-  noDocuments: {
-    Main: "col-span-12",
-    Exhibit: "hidden",
-    Document: "hidden",
-  },
-  mainDocSelected: {
-    Main: "col-span-3",
-    Exhibit: "flex flex-col col-span-4",
-    Document: "block col-span-5",
-  },
-  mainDocOnly: {
-    Main: "col-span-5",
-    Exhibit: "flex flex-col col-span-7",
-    Document: "hidden",
-  },
-};
+// const PANEL_CONFIGS = {
+//   noDocuments: {
+//     Main: "col-span-12",
+//     Exhibit: "hidden",
+//     Document: "hidden",
+//   },
+//   mainDocSelected: {
+//     Main: "col-span-3",
+//     Exhibit: "flex flex-col col-span-4",
+//     Document: "block col-span-5",
+//   },
+//   mainDocOnly: {
+//     Main: "col-span-5",
+//     Exhibit: "flex flex-col col-span-7",
+//     Document: "hidden",
+//   },
+// };
 
 // Types
 interface FormValues {
@@ -89,29 +80,29 @@ export default function CreateCase() {
   // Hooks
   const { push } = useNavigation();
   const { data: userData, isLoading: userLoading } = useGetIdentity<any>();
-  const [
-    uploadModalOpened,
-    { open: openUploadModal, close: closeUploadModal },
-  ] = useDisclosure(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // const [
+  //   uploadModalOpened,
+  //   { open: openUploadModal, close: closeUploadModal },
+  // ] = useDisclosure(false);
+  // const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // State
   const [isLoading, setIsLoading] = useState(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  // const [loading, setLoading] = useState<boolean>(false);
   const [usersLoading, setUsersLoading] = useState(true);
-  const [caseId, setCaseId] = useState<string>(uuidv4());
+  // const [caseId, setCaseId] = useState<string>(uuidv4());
   const [users, setUsers] = useState<User[]>([]);
-  const [panelsCss, setPanelsCss] = useState(PANEL_CONFIGS.noDocuments);
-  const [selMDocId, setSelMDocId] = useState<string>();
+  // const [panelsCss, setPanelsCss] = useState(PANEL_CONFIGS.noDocuments);
+  // const [selMDocId, setSelMDocId] = useState<string>();
   const [matterState, setMatterState] = useState<string>(CaseStates[0]);
   const [assignedLawyers, setAssignedLawyers] = useState<string[]>([]);
   const [clientRole, setClientRole] = useState(ClientRoles[0]);
   const [assignedLawyerOptions, setAssignedLawyerOptions] = useState<any[]>([]);
-  const [uploadingFiles, setUploadingFiles] = useState<Map<string, File[]>>(
-    new Map()
-  );
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [uploadingStates, setUploadingStates] = useState<string[]>([]);
+  // const [uploadingFiles, setUploadingFiles] = useState<Map<string, File[]>>(
+  //   new Map()
+  // );
+  // const [documents, setDocuments] = useState<any[]>([]);
+  // const [uploadingStates, setUploadingStates] = useState<string[]>([]);
 
   // Form
   const form = useForm<FormValues>({
@@ -132,31 +123,31 @@ export default function CreateCase() {
   });
 
   // Helper functions
-  const getMDocs = () => documents.filter((doc) => doc.type === DocType.MAIN);
-  const getEDocs = () =>
-    documents.filter((doc) => doc.mainDocumentId === selMDocId);
+  // const getMDocs = () => documents.filter((doc) => doc.type === DocType.MAIN);
+  // const getEDocs = () =>
+  //   documents.filter((doc) => doc.mainDocumentId === selMDocId);
 
-  const getSelDocCss = (selected: boolean) =>
-    selected
-      ? "bg-[#fafafa] border-r-4 border-r-[#292929]"
-      : "bg-white border-r-4 border-r-transparent";
+  // const getSelDocCss = (selected: boolean) =>
+  //   selected
+  //     ? "bg-[#fafafa] border-r-4 border-r-[#292929]"
+  //     : "bg-white border-r-4 border-r-transparent";
 
-  const getUploadingStateBadge = (state: string) => {
-    const badges = {
-      [UploadingState.DOING]: <Loader color="orange" size={14} />,
-      [UploadingState.SUCCESS]: (
-        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
-          <IconCheck size={10} />
-        </div>
-      ),
-      [UploadingState.FAIL]: (
-        <div className="w-4 h-4 rounded-full bg-[#e73b3b] flex items-center justify-center text-white">
-          <IconX size={10} />
-        </div>
-      ),
-    };
-    return badges[state];
-  };
+  // const getUploadingStateBadge = (state: string) => {
+  //   const badges = {
+  //     [UploadingState.DOING]: <Loader color="orange" size={14} />,
+  //     [UploadingState.SUCCESS]: (
+  //       <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
+  //         <IconCheck size={10} />
+  //       </div>
+  //     ),
+  //     [UploadingState.FAIL]: (
+  //       <div className="w-4 h-4 rounded-full bg-[#e73b3b] flex items-center justify-center text-white">
+  //         <IconX size={10} />
+  //       </div>
+  //     ),
+  //   };
+  //   return badges[state];
+  // };
 
   // Event handlers
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -175,38 +166,39 @@ export default function CreateCase() {
 
       if (!createdCase) throw new Error("Failed to create case");
 
-      setCaseId(createdCase.id);
+      // setCaseId(createdCase.id);
 
-      for (const doc of getMDocs()) {
-        const createdMainDocument = await createDocument(
-          createdCase.id,
-          doc.mediaId,
-          doc.title,
-          doc.type,
-          doc.type
-        );
-        if (!createdMainDocument)
-          throw new Error("Failed to create main document");
+      // for (const doc of getMDocs()) {
+      //   const createdMainDocument = await createDocument(
+      //     createdCase.id,
+      //     doc.mediaId,
+      //     doc.title,
+      //     doc.type,
+      //     doc.type
+      //   );
+      //   if (!createdMainDocument)
+      //     throw new Error("Failed to create main document");
 
-        for (const exhibitDocument of documents.filter(
-          (ed) => ed.mainDocumentId == doc.id
-        )) {
-          const createdExhibitDocument = await createDocument(
-            createdCase.id,
-            exhibitDocument.mediaId,
-            exhibitDocument.title,
-            exhibitDocument.type,
-            createdMainDocument.id
-          );
-          if (!createdExhibitDocument)
-            throw new Error("Failed to create exhibit document");
-        }
-      }
+      //   for (const exhibitDocument of documents.filter(
+      //     (ed) => ed.mainDocumentId == doc.id
+      //   )) {
+      //     const createdExhibitDocument = await createDocument(
+      //       createdCase.id,
+      //       exhibitDocument.mediaId,
+      //       exhibitDocument.title,
+      //       exhibitDocument.type,
+      //       createdMainDocument.id
+      //     );
+      //     if (!createdExhibitDocument)
+      //       throw new Error("Failed to create exhibit document");
+      //   }
+      // }
       notification.success({
         message: "Success",
         description: "Case created successfully",
       });
-      push("/cases");
+
+      push(`/cases/edit?caseId=${createdCase.id}`);
     } catch (error) {
       console.error(error);
       notification.error({
@@ -219,63 +211,63 @@ export default function CreateCase() {
     }
   };
 
-  const handleUploadFile = async (
-    fs: File[],
-    dockType: string,
-    mainDocId: string
-  ) => {
-    const newDocuments: any[] = [];
-    setUploadingFiles((prev) => {
-      prev.set(dockType, fs);
-      return prev;
-    });
-    setUploadingStates(fs.map(() => UploadingState.DOING));
+  // const handleUploadFile = async (
+  //   fs: File[],
+  //   dockType: string,
+  //   mainDocId: string
+  // ) => {
+  //   const newDocuments: any[] = [];
+  //   setUploadingFiles((prev) => {
+  //     prev.set(dockType, fs);
+  //     return prev;
+  //   });
+  //   setUploadingStates(fs.map(() => UploadingState.DOING));
 
-    const uploadPromises = fs.map(async (file, i) => {
-      try {
-        const presignedUrl = await getMediaPresignedUrl();
-        const uploadFileResponse = await uploadFile(
-          file,
-          presignedUrl.uploadUrl
-        );
+  //   const uploadPromises = fs.map(async (file, i) => {
+  //     try {
+  //       const presignedUrl = await getMediaPresignedUrl();
+  //       const uploadFileResponse = await uploadFile(
+  //         file,
+  //         presignedUrl.uploadUrl
+  //       );
 
-        if (!uploadFileResponse) throw new Error("Failed to upload file");
+  //       if (!uploadFileResponse) throw new Error("Failed to upload file");
 
-        const createdDocument = {
-          id: uuidv4(),
-          type: dockType,
-          title: file.name,
-          mainDocumentId: mainDocId,
-          mediaId: presignedUrl.id,
-          userId: userData?.sub,
-          caseId,
-        };
+  //       const createdDocument = {
+  //         id: uuidv4(),
+  //         type: dockType,
+  //         title: file.name,
+  //         mainDocumentId: mainDocId,
+  //         mediaId: presignedUrl.id,
+  //         userId: userData?.sub,
+  //         caseId,
+  //       };
 
-        setUploadingStates((prev) =>
-          prev.map((p, _i) => (_i === i ? UploadingState.SUCCESS : p))
-        );
-        newDocuments.push(createdDocument);
-      } catch (error: any) {
-        notification.error({
-          message: "Error",
-          description: "Failed to upload file",
-        });
-        setUploadingStates((prev) =>
-          prev.map((p, _i) => (_i === i ? UploadingState.FAIL : p))
-        );
-      }
-    });
+  //       setUploadingStates((prev) =>
+  //         prev.map((p, _i) => (_i === i ? UploadingState.SUCCESS : p))
+  //       );
+  //       newDocuments.push(createdDocument);
+  //     } catch (error: any) {
+  //       notification.error({
+  //         message: "Error",
+  //         description: "Failed to upload file",
+  //       });
+  //       setUploadingStates((prev) =>
+  //         prev.map((p, _i) => (_i === i ? UploadingState.FAIL : p))
+  //       );
+  //     }
+  //   });
 
-    await Promise.all(uploadPromises);
-    setDocuments([...documents, ...newDocuments]);
-    setUploadingFiles(new Map());
-  };
+  //   await Promise.all(uploadPromises);
+  //   setDocuments([...documents, ...newDocuments]);
+  //   setUploadingFiles(new Map());
+  // };
 
-  const handleDeleteDocument = async (doc: IDocument) => {
-    setLoading(true);
-    doc.type === DocType.MAIN && setSelMDocId(undefined);
-    setDocuments(documents.filter((d) => d.id !== doc.id));
-  };
+  // const handleDeleteDocument = async (doc: IDocument) => {
+  //   setLoading(true);
+  //   doc.type === DocType.MAIN && setSelMDocId(undefined);
+  //   setDocuments(documents.filter((d) => d.id !== doc.id));
+  // };
 
   // Effects
   useEffect(() => {
@@ -299,8 +291,12 @@ export default function CreateCase() {
         const userOrganizations = await getUserOrganization(
           userData?.sub as string
         );
-        const response = await getUsersOfOrganization(userOrganizations[0].id);
-        setUsers(response);
+        if (userOrganizations.length > 0) {
+          const response = await getUsersOfOrganization(
+            userOrganizations[0].id
+          );
+          setUsers(response);
+        }
       } catch (error) {
         console.error("Error fetching users:", error);
         notification.error({
@@ -314,16 +310,16 @@ export default function CreateCase() {
     fetchUsers();
   }, [userData]);
 
-  useEffect(() => {
-    const hasMainDocs = getMDocs().length > 0;
-    if (!hasMainDocs) {
-      setPanelsCss(PANEL_CONFIGS.noDocuments);
-    } else if (selMDocId) {
-      setPanelsCss(PANEL_CONFIGS.mainDocOnly);
-    } else {
-      setPanelsCss(PANEL_CONFIGS.mainDocOnly);
-    }
-  }, [selMDocId, documents]);
+  // useEffect(() => {
+  //   const hasMainDocs = getMDocs().length > 0;
+  //   if (!hasMainDocs) {
+  //     setPanelsCss(PANEL_CONFIGS.noDocuments);
+  //   } else if (selMDocId) {
+  //     setPanelsCss(PANEL_CONFIGS.mainDocOnly);
+  //   } else {
+  //     setPanelsCss(PANEL_CONFIGS.mainDocOnly);
+  //   }
+  // }, [selMDocId, documents]);
 
   // Render helpers
   const renderFormField = (
@@ -427,7 +423,7 @@ export default function CreateCase() {
             </div>
           </div>
         </form>
-        <div className="bg-white rounded-lg p-4 mt-6 flex flex-col flex-1 relative">
+        {/* <div className="bg-white rounded-lg p-4 mt-6 flex flex-col flex-1 relative">
           <LoadingOverlay
             visible={loading}
             zIndex={1000}
@@ -654,9 +650,9 @@ export default function CreateCase() {
               )}
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
-      <UploadExhibitModal
+      {/* <UploadExhibitModal
         opened={uploadModalOpened}
         close={closeUploadModal}
         open={openUploadModal}
@@ -664,7 +660,7 @@ export default function CreateCase() {
         caseTitle="New Case"
         mainDocumentId={selMDocId ?? ""}
         handleUploadFile={handleUploadFile}
-      />
+      /> */}
     </BaseLayout>
   );
 }
