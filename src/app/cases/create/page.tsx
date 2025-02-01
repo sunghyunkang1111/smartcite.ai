@@ -176,7 +176,7 @@ export default function CreateCase() {
       if (!createdCase) throw new Error("Failed to create case");
 
       setCaseId(createdCase.id);
-
+      
       for (const doc of getMDocs()) {
         const createdMainDocument = await createDocument(
           createdCase.id,
@@ -206,7 +206,8 @@ export default function CreateCase() {
         message: "Success",
         description: "Case created successfully",
       });
-      push("/cases");
+      
+      push("/cases/edit?caseId="+ createdCase.id);
     } catch (error) {
       console.error(error);
       notification.error({
@@ -427,7 +428,7 @@ export default function CreateCase() {
             </div>
           </div>
         </form>
-        <div className="bg-white rounded-lg p-4 mt-6 flex flex-col flex-1 relative">
+        {/* <div className="bg-white rounded-lg p-4 mt-6 flex flex-col flex-1 relative">
           <LoadingOverlay
             visible={loading}
             zIndex={1000}
@@ -654,7 +655,7 @@ export default function CreateCase() {
               )}
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
       <UploadExhibitModal
         opened={uploadModalOpened}

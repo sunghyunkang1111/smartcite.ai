@@ -35,6 +35,7 @@ import { getCitations } from "@services/citation.service";
 import { Dropzone } from "@mantine/dropzone";
 import Link from "next/link";
 import { notification } from "antd";
+import { IconChevronRight, IconChevronDown } from "@tabler/icons-react";
 
 // Constants
 const PANEL_CONFIGS = {
@@ -360,7 +361,50 @@ const CaseEditPage = () => {
       }
     );
   };
-
+  const DocumentActions = ({ handleExtractCitations, handleMenuItemClick, openUploadModal, selMDocId }) => {
+    const [isOpen, setIsOpen] = useState(false);
+  
+    return (
+      <div className="relative">
+        {/* Toggle Button */}
+        <button
+          className="w-8 text-2xl font-bold flex pl-2 mb-2 hover:text-gray-700" 
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <IconChevronDown size={24} /> : <IconChevronRight size={24} />}
+        </button>
+  
+        {/* Dropdown Menu */}
+        {isOpen && (
+          <div className="absolute top-full left-0 bg-white shadow-md rounded-lg p-2 z-10">
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={handleExtractCitations}
+                disabled={!selMDocId}
+                variant="default"
+                leftSection={<IconRefresh size={14} />}
+              >
+                Extract citations
+              </Button>
+              <Menu shadow="md" width={200}>
+                <Menu.Target>
+                  <Button variant="default" color="dark.6" leftSection={<IconUpload size={14} />}>
+                    Upload document
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item onClick={handleMenuItemClick}>Upload main documents</Menu.Item>
+                  <Menu.Item onClick={openUploadModal} disabled={!selMDocId}>
+                    Upload exhibit
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
   return (
     <BaseLayout>
       <div className="p-6 min-h-screen flex flex-col">
@@ -387,7 +431,7 @@ const CaseEditPage = () => {
               accept="application/pdf"
               multiple
             />
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <Button
                 onClick={handleExtractCitations}
                 disabled={!selMDocId}
@@ -415,7 +459,7 @@ const CaseEditPage = () => {
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
-            </div>
+            </div> */}
           </div>
           <div className="grid grid-cols-12 text-sm gap-1 flex-1 pt-6 text-[#989898]">
             <div
@@ -449,16 +493,27 @@ const CaseEditPage = () => {
                       {getGeneralStateText(doc)}
                     </div>
                   </div>
-                  <div className="w-20" onClick={(e) => e.stopPropagation()}>
+                  <div className="w-15" onClick={(e) => e.stopPropagation()}>
                     <DeleteConfirmModal
                       onDelete={() => handleDeleteDocument(doc)}
                       trigger={
                         <div className="cursor-pointer flex justify-center text-[#989898] hover:text-[#2e2e2e]">
-                          <IconTrash size={20} />
+                          <IconTrash size={23} />
                         </div>
                       }
-                    />
+                    />  
                   </div>
+                  {/* <button className="w-8 text-2xl font-bold flex pl-2 mb-2 hover:text-gray-700">
+                    &gt;
+                  </button> */}
+                  <div className="w-8 flex items-center justify-center">
+                    <DocumentActions 
+                      handleExtractCitations={handleExtractCitations}
+                      handleMenuItemClick={handleMenuItemClick}
+                      openUploadModal={openUploadModal}
+                      selMDocId={selMDocId}
+                    />
+                  </div>                  
                 </div>
               ))}
               {uploadingFiles.get(DocType.MAIN)?.map((file, i) => (
@@ -501,7 +556,7 @@ const CaseEditPage = () => {
                   <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
                     <IconUpload size={40} color="black" />
                     <div className="text-base text-black mt-3">
-                      Upload Document
+                    Upload Citing Documents
                     </div>
                     <div className="text-[#7c7c7c] text-center px-4">
                       Drag your file into this box or click &quot;Upload
@@ -603,7 +658,7 @@ const CaseEditPage = () => {
                     <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
                       <IconUpload size={40} color="black" />
                       <div className="text-base text-black mt-3">
-                        Upload Document
+                        Upload Exhibits
                       </div>
                       <div className="text-[#7c7c7c] text-center px-4">
                         Drag your file into this box or click &quot;Upload

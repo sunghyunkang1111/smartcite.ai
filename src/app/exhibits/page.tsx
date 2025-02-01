@@ -19,7 +19,8 @@ import Link from "next/link";
 import CitationsList from "@components/exhibit/CitationsList";
 import dynamic from "next/dynamic";
 
-const PdfViewer = dynamic(() => import("@components/common/PdfViewer"), { ssr: false });
+// const PdfViewer = dynamic(() => import("@components/common/PdfViewer"), { ssr: false });
+const PdfHighlighter = dynamic(() => import("@components/common/pdfHighlighter"), { ssr: false });
 
 export default function DocumentList() {
   // State Management
@@ -509,7 +510,8 @@ export default function DocumentList() {
                 </div>
               </div>
             ) : (
-              <PdfViewer mediaUrl={selDoc?.mediaUrl} />
+              // <PdfViewer mediaUrl={selDoc?.mediaUrl} />
+              <PdfHighlighter mediaUrl={selDoc?.mediaUrl} />
             )}
           </div>
         </div>

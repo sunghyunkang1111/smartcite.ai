@@ -1,10 +1,11 @@
-import dynamic from "next/dynamic";
-const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
-  ssr: false,
-});
+// import dynamic from "next/dynamic";
+// const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
+//   ssr: false,
+// });
 import { Drawer, LoadingOverlay } from "@mantine/core";
 import { IconArrowRight } from "@tabler/icons-react";
 import Link from "next/link";
+import PdfHighlighter from "@components/common/pdfHighlighter";
 interface ExhibitDetailDrawerProps {
   opened: boolean;
   close: () => void;
@@ -89,7 +90,9 @@ const ExhibitDetailDrawer = ({
             </div>
           </div>
           <div className="col-span-6 border border-2 border-[#eeeff1] relative py-6  bg-[#eeeff1] rounded-xl">
-            {selExh?.mediaUrl && <PdfViewer mediaUrl={selExh.mediaUrl} />}
+            {/* {selExh?.mediaUrl && <PdfViewer mediaUrl={selExh.mediaUrl} />} */}
+            {selExh?.mediaUrl && <PdfHighlighter mediaUrl={selExh.mediaUrl} />}
+
           </div>
         </div>
       </Drawer>
