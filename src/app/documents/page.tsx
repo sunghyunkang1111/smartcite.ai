@@ -254,15 +254,15 @@ export default function DocumentList() {
     let filteredDocs = documents.filter((doc) => doc.type === DocType.MAIN);
 
     // Date range filter
-    if (dateRange?.[0] && dateRange?.[1]) {
-      filteredDocs = filteredDocs.filter((doc) => {
-        const docDate = dayjs(doc.createdAt);
-        return (
-          docDate.isAfter(dateRange[0]) &&
-          docDate.isBefore(dateRange[1].add(1, "day"))
-        );
-      });
-    }
+    // if (dateRange?.[0] && dateRange?.[1]) {
+    //   filteredDocs = filteredDocs.filter((doc) => {
+    //     const docDate = dayjs(doc.createdAt);
+    //     return (
+    //       docDate.isAfter(dateRange[0]) &&
+    //       docDate.isBefore(dateRange[1].add(1, "day"))
+    //     );
+    //   });
+    // }
 
     // Search filter
     if (searchKey) {
@@ -343,7 +343,7 @@ export default function DocumentList() {
                 },
               }}
             />
-            <RangePicker
+            {/* <RangePicker
               style={{
                 border: "none",
                 backgroundColor: "#fff",
@@ -351,7 +351,7 @@ export default function DocumentList() {
               }}
               value={dateRange}
               onChange={(dates) => setDateRange(dates)}
-            />
+            /> */}
           </div>
         </div>
 

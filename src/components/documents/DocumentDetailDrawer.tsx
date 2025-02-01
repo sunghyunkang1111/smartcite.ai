@@ -28,7 +28,8 @@ import {
 } from "@/services/admin-file-upload.service";
 import { createDocument } from "@/services/document.service";
 // import PdfViewer from "@components/common/PdfViewer";
-import PdfViewer from "@/components/common/PdfViewer";
+// import PdfViewer from "@/components/common/PdfViewer";
+import PdfHighlighter from "@components/common/pdfHighlighter";
 import Link from "next/link";
 
 interface DocumentDetailDrawerProps {
@@ -352,8 +353,9 @@ const DocumentDetailDrawer = ({
               </div>
             ))}
           </div>
-          <div className="col-span-6 rounded-xl p-2 pt-4 pb-4 relative bg-[#eeeff1] border">
-            {selEDoc?.mediaUrl && <PdfViewer mediaUrl={selEDoc.mediaUrl} />}
+          <div className="col-span-6 rounded-xl p-2 pt-4` pb-4 relative bg-[#eeeff1] border">
+            {/* {selEDoc?.mediaUrl && <PdfViewer mediaUrl={selEDoc.mediaUrl} />} */}
+            {selEDoc?.mediaUrl && <PdfHighlighter mediaUrl={selEDoc.mediaUrl} />}
           </div>
         </div>
       </Drawer>

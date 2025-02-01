@@ -256,7 +256,7 @@ export default function BlogPostList() {
         <div className="flex justify-between">
           <div>
             <div className="text-xl text-[#292929] font-semibold">
-              Matters Management
+              Matters
             </div>
             <div className="text-[#7c7c7c] py-2">
               Quickly access case info and documents

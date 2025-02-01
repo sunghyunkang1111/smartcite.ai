@@ -11,7 +11,7 @@ export const menuItems = [
   {
     key: "documents",
     icon: <IconNotes />,
-    label: "Document Management",
+    label: "Citing Documents",
     route: "/documents",
   },
   {
