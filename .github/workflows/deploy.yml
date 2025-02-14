@@ -1,0 +1,54 @@
+name: Deploy Pre-built Next.js App to Vercel
+
+on:
+  push:
+    branches:
+      - test
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18  # Specify the Node.js version
+          cache: 'npm'
+
+      - name: Create .vercel/project.json
+        run: |
+          mkdir -p .vercel
+          echo '{ "projectId": "${{ vars.VERCEL_PROJECT_ID }}", "orgId": "${{ vars.VERCEL_ORG_ID }}" }' > .vercel/project.json
+
+      - name: Pull Vercel settings
+        run: npx vercel pull --environment=production --yes --token=$VERCEL_TOKEN
+        env:
+            VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Build the app
+      - name: Build Next.js app for Vercel prebuilt
+        run: npx vercel build --prod
+        env:
+            VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+            VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+            VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}        
+
+      # Step 5: Deploy prebuilt `.vercel/output` directory to Vercel
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25.2.0
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ vars.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: '--prod --prebuilt'
