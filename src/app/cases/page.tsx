@@ -12,20 +12,15 @@ import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { IconEdit, IconSearch, IconTrash } from "@tabler/icons-react";
 import { ICase } from "@/types/types";
 import { getFormatedDate } from "@/utils/util.functions";
-import {
-  CaseStateBgColor,
-  CaseStates,
-  CaseStateTextColor,
-} from "@/utils/util.constants";
 import { getAllUsers } from "@/services/keycloak/user.service";
 const { RangePicker } = DatePicker;
 export default function BlogPostList() {
   const { mutate: deleteMutate } = useDelete();
   const [searchKey, setSearchKey] = useState("");
   const [caseState, setCaseState] = useState("View All");
-  const [userLoading, setUserLoading] = useState<boolean>(true);
+  const [userLoading, setUserLoading] = useState<boolean>(false);
   const {
-    tableQueryResult: { data: caseData, isLoading: caseLoading },
+    tableQuery: { data: caseData, isLoading: caseLoading },
   } = useTable<any>({
     syncWithLocation: false,
   });
@@ -86,23 +81,23 @@ export default function BlogPostList() {
         </>
       ),
     },
-    {
-      title: "Status",
-      dataIndex: "state",
-      key: "state",
-      render: (value: string) => (
-        <span
-          style={{
-            backgroundColor:
-              CaseStateBgColor[value as keyof typeof CaseStateBgColor],
-            color: CaseStateTextColor[value as keyof typeof CaseStateTextColor],
-          }}
-          className="px-2 py-1 rounded-md font-semibold"
-        >
-          {value == " " ? "N/A" : value}
-        </span>
-      ),
-    },
+    // {
+    //   title: "Status",
+    //   dataIndex: "state",
+    //   key: "state",
+    //   render: (value: string) => (
+    //     <span
+    //       style={{
+    //         backgroundColor:
+    //           CaseStateBgColor[value as keyof typeof CaseStateBgColor],
+    //         color: CaseStateTextColor[value as keyof typeof CaseStateTextColor],
+    //       }}
+    //       className="px-2 py-1 rounded-md font-semibold"
+    //     >
+    //       {value == " " ? "N/A" : value}
+    //     </span>
+    //   ),
+    // },
     {
       title: "No.Documents",
       dataIndex: "uploadedDocumentsCount",
@@ -182,12 +177,13 @@ export default function BlogPostList() {
         setUserLoading(false);
       }
     };
-
+    console.log("feching Users", users);
     setUserLoading(true);
     fetchUsers();
   }, []);
 
   useEffect(() => {
+    console.log("fetching caseData");
     if (caseData) {
       const cases = caseData.items as ICase[];
       let filteredCases = cases;
@@ -256,11 +252,11 @@ export default function BlogPostList() {
         <div className="flex justify-between">
           <div>
             <div className="text-xl text-[#292929] font-semibold">
-              Matters Management
+              Matters
             </div>
-            <div className="text-[#7c7c7c] py-2">
+            {/* <div className="text-[#7c7c7c] py-2">
               Quickly access case info and documents
-            </div>
+            </div> */}
           </div>
           <div className="">
             <Button
@@ -275,7 +271,7 @@ export default function BlogPostList() {
           </div>
         </div>
         <div className="flex justify-between items-center mt-4">
-          <div className="flex gap-2 bg-white px-2.5 py-2 rounded-lg">
+          {/* <div className="flex gap-2 bg-white px-2.5 py-2 rounded-lg">
             {["View All", ...CaseStates].map((state) => (
               <div
                 onClick={() => setCaseState(state)}
@@ -289,7 +285,7 @@ export default function BlogPostList() {
                 {state}
               </div>
             ))}
-          </div>
+          </div> */}
           <div className="flex gap-2">
             <Input
               placeholder="Search"

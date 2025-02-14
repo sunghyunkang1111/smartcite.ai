@@ -23,7 +23,6 @@ const planStyles: Record<PlanType, React.CSSProperties> = {
 };
 
 export function PricingPlanPill({ plan }: PlanPillProps) {
-    console.log(plan)
   return (
     <Badge
       variant="filled"

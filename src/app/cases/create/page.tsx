@@ -198,7 +198,7 @@ export default function CreateCase() {
               <div className="text-xl text-[#292929]">Untitled Matter</div>
             </div>
             <div className="flex gap-2">
-              <Select
+              {/* <Select
                 onChange={setMatterState}
                 style={{ width: "120px", height: "100%" }}
                 value={matterState}
@@ -210,7 +210,7 @@ export default function CreateCase() {
                     </span>
                   </Select.Option>
                 ))}
-              </Select>
+              </Select> */}
               <Button
                 variant="default"
                 color="dark.6"
@@ -231,7 +231,7 @@ export default function CreateCase() {
               <div className="grid grid-cols-2 gap-4">
                 {renderFormField("Title", "title", "Enter title here")}
                 {renderFormField("Client", "client", "Enter client here")}
-                <MantineSelect
+                {/* <MantineSelect
                   label="Client Role"
                   placeholder="Client Role"
                   defaultValue={"Petitioner"}
@@ -240,7 +240,7 @@ export default function CreateCase() {
                   onChange={(value) => setClientRole(value as string)}
                   data={ClientRoles}
                   styles={commonInputStyles}
-                />
+                /> */}
                 <MultiSelect
                   label="Assigned Lawyer"
                   required

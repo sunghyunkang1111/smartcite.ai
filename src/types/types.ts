@@ -11,6 +11,7 @@ export interface IDocument {
   processingStatus: string;
   citationsExtractionStatus: string | null;
   citationsCount: number;
+  hashedData: string;
 }
 
 export interface ICitation {
@@ -60,4 +61,18 @@ export interface IUser {
 export interface ICitationMap {
   citedDocument: IDocument;
   citingDocuments: { document: IDocument; citedAs: string[] }[];
+}
+
+export interface CitationMapEntry {
+  hash: string;
+  documents: CitationMapDocument[];
+};
+
+export interface CitationMapDocument {
+  id: string;
+  title: string;
+  sourceDocumentId: string;
+  sourceDocumentTitle: string;
+  sourceDocumentMediaUrl: string;
+  citations: ICitation[];
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Button, LoadingOverlay, Loader } from "@mantine/core";
+import { Button, LoadingOverlay, Loader, Modal } from "@mantine/core";
 import {
   useCreate,
   useDelete,
@@ -36,6 +36,8 @@ import { getCitations } from "@services/citation.service";
 import { Dropzone } from "@mantine/dropzone";
 import Link from "next/link";
 import { notification } from "antd";
+import pRetry from "p-retry";
+import PdfViewer from "@components/common/PdfViewer";
 
 // Constants
 const PANEL_CONFIGS = {
@@ -45,13 +47,13 @@ const PANEL_CONFIGS = {
     Document: "hidden",
   },
   mainDocSelected: {
-    Main: "col-span-3",
-    Exhibit: "flex flex-col col-span-4",
+    Main: "col-span-5",
+    Exhibit: "flex flex-col col-span-6",
     Document: "block col-span-5",
   },
   mainDocOnly: {
     Main: "col-span-5",
-    Exhibit: "flex flex-col col-span-7",
+    Exhibit: "flex flex-col col-span-6",
     Document: "hidden",
   },
 };
@@ -93,6 +95,19 @@ const CaseEditPage = () => {
   const [panelsCss, setPanelsCss] = useState(PANEL_CONFIGS.noDocuments);
   const [citations, setCitations] = useState<ICitation[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState<IDocument>();
+
+  const openModal = (e: any, doc: IDocument) => {
+    e.preventDefault();
+    setSelectedDoc(doc);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedDoc(undefined);
+    setIsModalOpen(false);
+  };
 
   // URL params
   const { params } = useParsed();
@@ -114,14 +129,60 @@ const CaseEditPage = () => {
     hasPagination: false,
   });
 
+  const pollingRef = useRef(false);
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      refetchDocuments();
-    }, 5000); // Poll every 5 seconds
-
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, [refetchDocuments]);
-
+    const pollDocuments = async () => {
+      if (pollingRef.current) return;
+      pollingRef.current = true;
+  
+      try {
+        await pRetry(
+          async () => {
+            const response: any = await refetchDocuments();
+            const updatedDocuments = response.data?.data?.items as IDocument[];
+  
+            const inProgressDocs = updatedDocuments.filter(
+              (doc: IDocument) =>
+                doc.processingStatus === ProcessingStatus.IN_PROGRESS ||
+                doc.processingStatus === ProcessingStatus.PENDING ||
+                doc.citationsExtractionStatus === CitationsExtractionStatus.IN_PROGRESS ||
+                doc.citationsExtractionStatus === CitationsExtractionStatus.PENDING
+            );
+  
+            if (inProgressDocs.length > 0) {
+              throw new Error("Some documents are still in progress");
+            }
+  
+            const statusChanged = updatedDocuments.some((updatedDoc) => {
+              const existingDoc = documents.find((doc) => doc.id === updatedDoc.id);
+              return (
+                existingDoc?.processingStatus !== updatedDoc?.processingStatus ||
+                existingDoc?.citationsExtractionStatus !== updatedDoc?.citationsExtractionStatus
+              );
+            });
+  
+            if (statusChanged) {
+              setDocuments(updatedDocuments);
+            }
+          },
+          {
+            forever: true,
+            minTimeout: 5000,
+          }
+        );
+      } catch (error) {
+        console.error("Polling error:", error);
+      } finally {
+        pollingRef.current = false;
+      }
+    };
+  
+    if (!pollingRef.current) {
+      pollDocuments();
+    }
+  }, [refetchDocuments, documents]);
+  
   const { mutate: createMutate } = useCreate();
   const { mutate: deleteMutate } = useDelete();
 
@@ -163,22 +224,28 @@ const CaseEditPage = () => {
           <IconCheck size={10} />
         </div>
       );
+    } else if (doc.processingStatus == ProcessingStatus.FAILED) {
+      return (
+        <div className="w-4 h-4 rounded-full bg-[#e73b3b] flex items-center justify-center text-white">
+          <IconX size={10} />
+        </div>
+      );
     }
     return <Loader color="orange" size={14} />;
   };
 
   const getGeneralStateText = (doc: IDocument) => {
     if (doc.processingStatus === ProcessingStatus.PENDING) {
-      return "Document is currently initializing...";
+      return "Uploading document for processing...";
     }
 
     if (doc.processingStatus === ProcessingStatus.IN_PROGRESS) {
-      return "Document is currently in progress...";
+      return "Processing and extracting document...";
     }
 
     if (doc.processingStatus === ProcessingStatus.COMPLETED) {
       if (doc.citationsExtractionStatus === null) {
-        return "Document ready for citation use";
+        return "Document ready for citations extraction";
       }
       if (
         doc.citationsExtractionStatus === CitationsExtractionStatus.COMPLETED
@@ -198,21 +265,27 @@ const CaseEditPage = () => {
           <IconCheck size={10} />
         </div>
       );
+    } else if (doc.processingStatus == ProcessingStatus.FAILED) {
+      return (
+        <div className="w-4 h-4 rounded-full bg-[#e73b3b] flex items-center justify-center text-white">
+          <IconX size={10} />
+        </div>
+      );
     }
     return <Loader color="orange" size={14} />;
   };
 
   const getExhibitGeneralStateText = (doc: IDocument) => {
     if (doc.processingStatus === ProcessingStatus.PENDING) {
-      return "Document is currently initializing...";
+      return "Uploading document for processing...";
     }
 
     if (doc.processingStatus === ProcessingStatus.IN_PROGRESS) {
-      return "Document is currently in progress...";
+      return "Processing and extracting document...";
     }
 
     if (doc.processingStatus === ProcessingStatus.COMPLETED) {
-      return "Document is successfully processed";
+      return "Document is successfully processed and extracted";
     }
 
     return "Document processing failed";
@@ -366,7 +439,7 @@ const CaseEditPage = () => {
       <div className="p-6 min-h-screen flex flex-col">
         <GeneralInformationWithHeader
           caseData={caseData?.data}
-          hideHeader={hideHeader}
+          hideHeader={true}
         />
         <div className="bg-white rounded-lg p-4 mt-6 flex flex-col flex-1 relative">
           <LoadingOverlay
@@ -440,19 +513,23 @@ const CaseEditPage = () => {
                   <div className="w-10 pl-3">{_i + 1}</div>
                   <div className="flex-1 text-[#0550b3] truncate">
                     <div className="truncate flex items-center gap-2">
-                      <Link
-                        href={`/documents?caseId=${caseId}&documentId=${doc.id}`}
+                      <a
+                        href="#"
                         className="truncate underline"
+                        onClick={(e) => openModal(e, doc)}
                       >
                         {doc.title}
-                      </Link>
+                      </a>
                       <div className="flex-1">{getGeneralStateBadge(doc)}</div>
                     </div>
                     <div className="text-[#bdbdbd] text-sm mt-1 truncate">
                       {getGeneralStateText(doc)}
                     </div>
                   </div>
-                  <div className="w-20 flex items-center justify-center gap-3" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="w-20 flex items-center justify-center gap-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <DeleteConfirmModal
                       onDelete={() => handleDeleteDocument(doc)}
                       trigger={
@@ -509,11 +586,10 @@ const CaseEditPage = () => {
                   <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
                     <IconUpload size={40} color="black" />
                     <div className="text-base text-black mt-3">
-                      Upload Document
+                      Upload Citing Document
                     </div>
                     <div className="text-[#7c7c7c] text-center px-4">
-                      Drag your file into this box or click &quot;Upload
-                      Document&quot; to get started
+                      Drag your file into this box to get started
                     </div>
                   </div>
                 </Dropzone>
@@ -611,11 +687,10 @@ const CaseEditPage = () => {
                     <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
                       <IconUpload size={40} color="black" />
                       <div className="text-base text-black mt-3">
-                        Upload Document
+                        Upload Exhibits
                       </div>
                       <div className="text-[#7c7c7c] text-center px-4">
-                        Drag your file into this box or click &quot;Upload
-                        Document&quot; to get started
+                        Drag your exhibit documents into this box
                       </div>
                     </div>
                   </Dropzone>
@@ -632,13 +707,13 @@ const CaseEditPage = () => {
                 </div>
               )}
             </div>
-            <div className={`rounded-xl border  ${panelsCss.Document}`}>
+            {/* <div className={`rounded-xl border  ${panelsCss.Document}`}>
               <DecriptionPanel
                 citedInMainDocuments={getCitedInMainDocuments(
                   selEDocId as string
                 )}
               />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -652,6 +727,9 @@ const CaseEditPage = () => {
         mainDocumentId={selMDocId ?? ""}
         handleUploadFile={handleUploadFile}
       />
+      <Modal size={"70%"} onClose={closeModal} opened={isModalOpen}>
+        <PdfViewer mediaUrl={selectedDoc?.mediaUrl} />
+      </Modal>
     </BaseLayout>
   );
 };

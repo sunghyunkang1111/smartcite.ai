@@ -81,7 +81,7 @@ const GeneralInformationWithHeader = ({
       const userOrganizations = await getUserOrganization(
         userData?.sub as string
       );
-      const response = await getUsersOfOrganization(userOrganizations[0].id);
+      const response = await getUsersOfOrganization(userOrganizations?.[0]?.id);
       setUsers(response);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -111,12 +111,13 @@ const GeneralInformationWithHeader = ({
       },
       {
         onError: (error) => {
-          console.error(error);
+          console.log("Error updating case:", error);
           setIsLoading(false);
           push("/cases");
         },
         onSuccess: () => {
           setIsLoading(false);
+          console.log("Success updating case:");
           push("/cases");
         },
       }
@@ -149,6 +150,7 @@ const GeneralInformationWithHeader = ({
   }, [caseData]);
 
   useEffect(() => {
+    console.log("userData", userData);
     if (!userData) return;
     console.log(userData);
     fetchUsers();
@@ -168,7 +170,7 @@ const GeneralInformationWithHeader = ({
         </div>
       </div>
       <div className="flex gap-2">
-        <Select
+        {/* <Select
           onChange={setMatterState}
           style={{ width: "120px", height: "100%" }}
           value={matterState}
@@ -178,8 +180,8 @@ const GeneralInformationWithHeader = ({
               <span style={{ color: CaseStateTextColor[state] }}>{state}</span>
             </Select.Option>
           ))}
-        </Select>
-        <Button
+        </Select> */}
+        {/* <Button
           variant="default"
           color="dark.6"
           style={{ borderColor: "black", backgroundColor: "white" }}
@@ -190,7 +192,7 @@ const GeneralInformationWithHeader = ({
         </Button>
         <Button variant="" color="dark.6" type="submit">
           Save
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

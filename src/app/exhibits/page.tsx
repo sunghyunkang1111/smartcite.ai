@@ -3,14 +3,16 @@
 import React, { useEffect, useState } from "react";
 import { Input, LoadingOverlay } from "@mantine/core";
 import { notification, TableColumnType, List } from "antd";
-import {
-  useNavigation,
-  useOne,
-  useTable,
-} from "@refinedev/core";
+import { useNavigation, useOne, useTable } from "@refinedev/core";
 import { Layout as BaseLayout } from "@/components/layout";
 import { IconClick, IconEye, IconSearch } from "@tabler/icons-react";
-import { ICase, ICitation, ICitationMap, IDocument } from "@/types/types";
+import {
+  CitationMapEntry,
+  ICase,
+  ICitation,
+  ICitationMap,
+  IDocument,
+} from "@/types/types";
 import { DocType } from "@/utils/util.constants";
 import MyTable from "@/components/common/MyTable";
 import { useDisclosure } from "@mantine/hooks";
@@ -18,6 +20,8 @@ import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { createHash } from "crypto";
+import { v5 as uuidv5 } from "uuid";
 
 const PdfViewer = dynamic(() => import("@components/common/PdfViewer"), {
   ssr: false,
@@ -33,7 +37,10 @@ export default function DocumentList() {
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
   const [citationMap, setCitationMaps] = useState<ICitationMap[]>([]);
-  const [selCitationMap, setSelCitationMap] = useState<ICitationMap>();
+  const [selCitationMap, setSelCitationMap] = useState<CitationMapEntry>();
+  const [citationMapping, setCitationMapping] = useState<CitationMapEntry[]>(
+    []
+  );
   const { data: caseData, isLoading: caseLoading } = useOne<ICase>({
     resource: "cases",
     id: caseId || "",
@@ -42,6 +49,9 @@ export default function DocumentList() {
   const { data: documentData, isLoading: docLoading } = useTable<any>({
     resource: `cases/${caseId}/documents`,
     syncWithLocation: false,
+    pagination: {
+      pageSize: 100,
+    },
     queryOptions: {
       onError: () => {
         notification.error({
@@ -114,17 +124,109 @@ export default function DocumentList() {
         citingDocuments: citingDocsWithCitedAs,
       });
     }
-    console.log(rows);
+    // console.log(rows);
+    const citationMap = buildCitationMap(docs, citations);
+    console.log(citationMap);
+    setCitationMapping(citationMap);
     return rows;
+  };
+
+  const hashFilename = (filename: string): string => {
+    if (!filename) return "Unknown Hash";
+    return createHash("sha256").update(filename).digest("hex").slice(0, 16);
+  };
+
+  const generateDeterministicUUID = (inputHash: string): string => {
+    return uuidv5(inputHash, "6ba7b811-9dad-11d1-80b4-00c04fd430c8");
+  };
+
+  const buildCitationMap = (
+    docs: IDocument[],
+    citations: ICitation[]
+  ): CitationMapEntry[] => {
+    const citationMap: Record<string, CitationMapEntry> = {};
+
+    docs.forEach((doc) => {
+      const hash = doc.hashedData || hashFilename(doc.title);
+      const documentHash = generateDeterministicUUID(hash);
+
+      // Filter related citations for this document
+      const relatedCitations = citations.filter(
+        (citation) => citation.destinationDocumentId === doc.id
+      );
+
+      if (relatedCitations.length === 0) {
+        return; // Skip if there are no related citations for this document
+      }
+
+      // Group citations by sourceDocumentId
+      const groupedCitationsBySource = relatedCitations.reduce(
+        (acc, citation) => {
+          if (!acc[citation.sourceDocumentId]) {
+            const sourceDoc = docs.find(
+              (d) => d.id === citation.sourceDocumentId
+            );
+            acc[citation.sourceDocumentId] = {
+              sourceDocumentTitle: sourceDoc
+                ? sourceDoc.title
+                : "Unknown Document",
+              sourceDocumentMediaUrl: sourceDoc ? sourceDoc.mediaUrl : "",
+              citations: [],
+            };
+          }
+          acc[citation.sourceDocumentId].citations.push(citation);
+          return acc;
+        },
+        {} as Record<
+          string,
+          {
+            sourceDocumentTitle: string;
+            citations: ICitation[];
+            sourceDocumentMediaUrl: string;
+          }
+        >
+      );
+
+      // Ensure the hash is added to the citationMap
+      if (!citationMap[documentHash]) {
+        citationMap[documentHash] = {
+          hash: documentHash,
+          documents: [],
+        };
+      }
+
+      // Add the grouped citations as separate documents under the same hash
+      Object.keys(groupedCitationsBySource).forEach((sourceDocumentId) => {
+        const sourceGroup = groupedCitationsBySource[sourceDocumentId];
+        citationMap[documentHash].documents.push({
+          id: doc.id,
+          title: doc.title,
+          sourceDocumentId,
+          sourceDocumentTitle: sourceGroup.sourceDocumentTitle,
+          sourceDocumentMediaUrl: sourceGroup.sourceDocumentMediaUrl,
+          citations: sourceGroup.citations,
+        });
+      });
+    });
+
+    // Convert the citationMap object to an array
+    return Object.values(citationMap).filter(
+      (entry) => entry.documents.length > 0
+    );
   };
 
   React.useEffect(() => {
     if (docLoading || caseLoading || citationLoading) {
       return;
     }
-    const citationMaps = buildCitationTableRows(documents, citations);
-    setCitationMaps(citationMaps);
-    setActiveData(citationMaps?.[0])
+
+    // const citationMaps = buildCitationTableRows(documents, citations);
+    // setCitationMaps(citationMaps);
+    // setActiveData(citationMaps?.[0]);
+    const citationMap = buildCitationMap(documents, citations);
+    console.log(citationMap);
+    setCitationMapping(citationMap);
+    setSelCitationMap(citationMap?.[0]);
   }, [documents, citations]);
 
   useEffect(() => {
@@ -147,12 +249,14 @@ export default function DocumentList() {
       const fetchCitations = async () => {
         setCitationLoading(true);
         const mainDocs = getMDocs();
+        console.log("mainDoc Length", mainDocs.length);
         let citations: ICitation[] = [];
         try {
           for (const doc of mainDocs) {
             const res = (await getCitations(doc.id)) as any;
             const docCitations = res.items as ICitation[];
-            citations = [...citations, ...docCitations]
+            console.log("citation Length", docCitations.length);
+            citations = [...citations, ...docCitations];
           }
           setCitationLoading(false);
         } catch (error) {
@@ -170,68 +274,71 @@ export default function DocumentList() {
     }
   }, [documents, docLoading]);
 
-  const columns: TableColumnType<ICitationMap>[] = [
+  const columns: TableColumnType<CitationMapEntry>[] = [
     {
-      title: "Cited Document",
-      dataIndex: "citedDocument",
-      key: "citedDocument",
-      align: "center",
-      render: (citedDoc) => <div>{citedDoc?.title}</div>,
+      title: "Cited Document (DocID)",
+      dataIndex: "hash",
+      key: "hashedData",
+      width: 350,
+      fixed: "left",
+      // render: (hash) => <strong>{hash}</strong>,
     },
     {
       title: "Citations",
-      dataIndex: "citingDocuments",
-      key: "citations",
-      render: (citingDocs: { document: IDocument; citedAs: string[] }[]) => (
-        <MyTable
-          dataSource={citingDocs}
-          pagination={false}
-          bordered={true}
-          rowKey={(record: any) => record.document.id}
-          columns={[
-            {
-              title: "Cited As",
-              dataIndex: "citedAs",
-              key: "citedAs",
-              width: "50%",
-              render: (citedAs: string[]) => (
-                <List
-                  size="small"
-                  bordered={false}
-                  dataSource={citedAs}
-                  renderItem={(text) => <List.Item className="flex items-center">{text}</List.Item>}
-                />
-              ),
-            },
-            {
-              title: "In Citing Document",
-              dataIndex: "document",
-              key: "citingDocument",
-              width: "50%",
-              render: (doc: IDocument) => <div className="flex items-center">{doc.title}</div>,
-            },
-          ]}
-        />
+      dataIndex: "documents",
+      key: "documents",
+      width: 700,
+      render: (documents) => (
+        <div style={{ margin: "0 -15px 0 -15px" }}>
+          <MyTable
+            dataSource={documents}
+            pagination={false}
+            bordered={true}
+            rowKey={(record: any) => record.id}
+            scroll={{ x: true }}
+            tableLayout="fixed"
+            columns={[
+              {
+                title: "Cited As",
+                dataIndex: "title",
+                key: "title",
+                width: 350,
+                render: (title: string) => (
+                  <div>{title.replace(/\.[^/.]+$/, "")}</div>
+                ),
+              },
+              {
+                title: "In Citing Document",
+                dataIndex: "sourceDocumentTitle",
+                key: "sourceDocumentTitle",
+                width: 350,
+                render: (title: string) => (
+                  <div>{title.replace(/\.[^/.]+$/, "")}</div>
+                ),
+              },
+            ]}
+          />
+        </div>
       ),
     },
     {
       title: "Action",
-      render: (_value, record: ICitationMap) => (
+      width: 100,
+      fixed: "right",
+      render: (_value, record: CitationMapEntry) => (
         <IconEye
-          className={"cursor-pointer hover:text-[#2e2e2e]"}
-          onClick={() => {
-            onActionClick(record, true);
-          }}
+          className="cursor-pointer hover:text-[#2e2e2e]"
+          onClick={() => onActionClick(record, true)}
         />
       ),
     },
   ];
 
-  const setActiveData = (data: ICitationMap) => {
+  const setActiveData = (data: CitationMapEntry) => {
     setSelCitationMap(data);
   };
 
-  const onActionClick = (data: ICitationMap, showDrawer?: boolean) => {
+  const onActionClick = (data: CitationMapEntry, showDrawer?: boolean) => {
     setActiveData(data);
     showDrawer && openDrawer();
   };
@@ -290,7 +397,7 @@ export default function DocumentList() {
           >
             <MyTable
               columns={columns}
-              dataSource={citationMap}
+              dataSource={citationMapping}
               pagination={false}
               onRow={(record: any) => ({
                 onClick: () => onActionClick(record, false),
@@ -312,7 +419,9 @@ export default function DocumentList() {
                 </div>
               </div>
             ) : (
-              <PdfViewer mediaUrl={selCitationMap.citedDocument.mediaUrl} />
+              <PdfViewer
+                mediaUrl={selCitationMap.documents[0].sourceDocumentMediaUrl}
+              />
             )}
           </div>
         </div>
@@ -322,7 +431,7 @@ export default function DocumentList() {
         matter={matter as ICase}
         opened={drawerOpened}
         close={closeDrawer}
-        citations={selCitationMap as ICitationMap}      
+        citations={selCitationMap as any}
       />
     </BaseLayout>
   );

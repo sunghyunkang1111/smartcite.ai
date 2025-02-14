@@ -143,6 +143,7 @@ export const getAllUsersInOrganization = async (
   token: string,
   organizationId: string
 ) => {
+  if (!organizationId) return [];
   try {
     const getAllUsers = await axios.get(
       `${keycloakUrl}/admin/realms/${realmId}/organizations/${organizationId}/members`,
@@ -339,6 +340,7 @@ export const completeProfile = async (
 };
 
 export const getUsersOfOrganization = async (orgId: string) => {
+  if (!orgId) return [];
   try {
     const token = localStorage.getItem("accessToken");
     if (!token) throw new Error("Token not found.");

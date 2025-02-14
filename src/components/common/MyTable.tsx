@@ -7,6 +7,7 @@ const MyTable = ({ columns, dataSource, ...props }: any) => {
       {...props}
       columns={columns}
       dataSource={dataSource}
+      rowKey={(record, index) => record.id || record.key || record.hash || index}
       components={{
         header: {
           cell: (props: any) => (

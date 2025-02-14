@@ -2,23 +2,26 @@
 
 import { useEffect, type PropsWithChildren } from "react";
 import { Sidebar } from "../sidebar";
-import { useIsAuthenticated } from "@refinedev/core";
+import { useGetIdentity, useIsAuthenticated } from "@refinedev/core";
 import {
   MantineProvider,
   createTheme,
 } from "@mantine/core";
 import { redirect } from "next/navigation";
+import { useMemo } from "react";
+
 export const Layout = ({ children }: PropsWithChildren) => {
   
-  const { data } = useIsAuthenticated();
+  const { isLoading, data } = useIsAuthenticated();
+  const { isLoading: isIdentityLoading, data: identityData } = useGetIdentity<any>();
 
   useEffect(() => {
     if (data) {
-      if (!data.authenticated) {
+      if (!isLoading && !isIdentityLoading && !data?.authenticated && !identityData) {
         redirect("/auth/login");
       }
     }
-  }, [data]);
+  }, [data, isLoading, isIdentityLoading, identityData]);
   const theme = createTheme({
     /** Put your mantine theme override here */
     components: {

@@ -70,11 +70,13 @@ const PdfViewer = ({ mediaUrl, highlightWords = [] }: PdfViewerProps) => {
   }, [highlightWords, pdfLoaded]);
 
   const handleNextCitation = () => {
-    jumpToNextMatch();
+    const response = jumpToNextMatch();
+    console.log(response);
   };
 
   const handlePreviousCitation = () => {
-    jumpToPreviousMatch();
+    const response = jumpToPreviousMatch();
+    console.log(response);
   };
 
   return (
@@ -83,8 +85,10 @@ const PdfViewer = ({ mediaUrl, highlightWords = [] }: PdfViewerProps) => {
       style={{
         height: "100%",
         width: "100%",
+        maxWidth: "1000px",
         maxHeight: "calc(100vh - 40px)",
         overflowY: "auto",
+        margin: "0 auto",
       }}
     >
       {highlightWords.length > 1 && (

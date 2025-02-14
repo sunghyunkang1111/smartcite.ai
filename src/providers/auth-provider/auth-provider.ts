@@ -69,6 +69,7 @@ export const authProvider: AuthProvider = {
         message: "Success",
         description: "Logged in successfully.",
       });
+      console.log("REDIRECTING TO CASES");
       return {
         success: true,
         redirectTo: "/cases",
@@ -174,6 +175,7 @@ export const authProvider: AuthProvider = {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("tempToken");
+      console.log("Token expired, redirecting to login page");
       return {
         authenticated: false,
         redirectTo: "/auth/login",

@@ -1,7 +1,14 @@
 import { Drawer, LoadingOverlay } from "@mantine/core";
 import { IconArrowRight } from "@tabler/icons-react";
 import Link from "antd/es/typography/Link";
-import { ICase, ICitationMap, IDocument } from "@/types/types";
+import {
+  CitationMapDocument,
+  CitationMapEntry,
+  ICase,
+  ICitation,
+  ICitationMap,
+  IDocument,
+} from "@/types/types";
 import MyTable from "@components/common/MyTable";
 import { useState } from "react";
 import { List, TableColumnType } from "antd";
@@ -11,7 +18,7 @@ interface ExhibitDetailDrawerProps {
   opened: boolean;
   close: () => void;
   matter: ICase;
-  citations: ICitationMap;
+  citations: CitationMapEntry;
 }
 
 const ExhibitDetailDrawer = ({
@@ -20,46 +27,50 @@ const ExhibitDetailDrawer = ({
   matter,
   citations,
 }: ExhibitDetailDrawerProps) => {
-  const [selectedCitation, setSelectedCitation] = useState<{ document: IDocument; citedAs: string[] } | null>(null);
+  // const [selectedCitation, setSelectedCitation] = useState<{ document: IDocument; citedAs: string[] } | null>(null);
+  const [selectedCitation, setSelectedCitation] =
+    useState<CitationMapDocument | null>(null);
 
   React.useEffect(() => {
-    const selectedCitation = citations?.citingDocuments?.[0];
+    const selectedCitation = citations?.documents[0];
     setSelectedCitation(selectedCitation);
   }, [citations]);
 
-  const columns: TableColumnType<ICitationMap>[] = [
+  const columns: TableColumnType<CitationMapEntry>[] = [
     {
       title: "Cited As",
-      dataIndex: "citedAs",
-      key: "citedAs",
-      width: "50%",
-      render: (citedAs: string[]) => (
-        <List
-          size="small"
-          bordered={false}
-          dataSource={citedAs}
-          renderItem={(text) => (
-            <List.Item className="flex items-center">{text}</List.Item>
-          )}
-        />
-      ),
+      dataIndex: "title",
+      key: "title",
+      render: (title: string) => <div>{title.replace(/\.[^/.]+$/, "")}</div>,
     },
     {
       title: "In Citing Document",
-      dataIndex: "document",
-      key: "citingDocument",
-      width: "50%",
-      render: (doc: IDocument) => (
+      dataIndex: "sourceDocumentTitle",
+      key: "sourceDocumentTitle",
+      render: (title: string, record: any) => (
         <Link
-          className="flex items-center"
-          onClick={() => {
-            setSelectedCitation({ document: doc, citedAs: citations?.citingDocuments?.find((c) => c.document.id === doc.id)?.citedAs || [] });
-          }}
+          className="text-[#056cf3] underline cursor-pointer"
+          onClick={() => setSelectedCitation(record)}
         >
-          {doc.title}
+          {title.replace(/\.[^/.]+$/, "")}
         </Link>
       ),
     },
+    {
+      title: "Citation Texts",
+      dataIndex: "citations",
+      key: "citations",
+      render: (citations: ICitation[]) => (
+        <List
+          dataSource={citations}
+          renderItem={(item) => (
+            <List.Item className="text-sm text-[#292929]">
+              {item.sourceText}
+            </List.Item>
+          )}
+        />
+      ),
+    }
   ];
 
   return (
@@ -103,7 +114,7 @@ const ExhibitDetailDrawer = ({
               {matter?.title}
             </Link>
           </span>
-          Cited Document: {citations?.citedDocument?.title}
+          {/* Cited Document: {citations?.citedDocument?.title} */}
         </div>
         <div className="mt-4 grid grid-cols-11 text-sm flex-1 gap-4">
           <div className="col-span-5 border rounded-xl relative">
@@ -111,8 +122,9 @@ const ExhibitDetailDrawer = ({
               Description
             </div>
             <div className="p-4">
-              <div className="#292929 mt-3 leading-6">
-                Document summary is being generated...
+              <div className="#292929 leading-6 p-2">
+                Click on the citing document to see the citations
+                {/* Document summary is being generated... */}
               </div>
               <div className="col-span-5 border rounded-xl relative">
                 <div className="flex items-center py-3 pl-4 border-b text-[#292929]">
@@ -121,7 +133,7 @@ const ExhibitDetailDrawer = ({
                 <div className="p-4">
                   <MyTable
                     columns={columns}
-                    dataSource={citations?.citingDocuments}
+                    dataSource={citations?.documents}
                     pagination={false}
                   />
                 </div>
@@ -130,7 +142,12 @@ const ExhibitDetailDrawer = ({
           </div>
           <div className="col-span-6 border border-[#eeeff1] relative py-6  bg-[#eeeff1] rounded-xl">
             {selectedCitation && (
-              <PdfViewer mediaUrl={selectedCitation?.document.mediaUrl} highlightWords={selectedCitation?.citedAs} />
+              <PdfViewer
+                mediaUrl={selectedCitation?.sourceDocumentMediaUrl}
+                highlightWords={selectedCitation?.citations
+                  .map((citation) => citation.sourceText)
+                  .filter(Boolean)}
+              />
             )}
           </div>
         </div>

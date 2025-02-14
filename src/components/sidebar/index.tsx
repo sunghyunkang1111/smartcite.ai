@@ -14,7 +14,6 @@ export const Sidebar = () => {
   const caseId = searchParams.get("caseId");
   const { mutate: logout } = useLogout();
   const { data } = useGetIdentity();
-  console.log(data);
   const user = data as any;
   const selectedKey = pathname.split("/")[1].split("?")[0];
   const menus = menuItems;
@@ -74,7 +73,7 @@ export const Sidebar = () => {
                   <div className="flex flex-col">
                     <div className="flex flex-row items-center gap-2">
                       <div className="w-9 h-9 flex items-center justify-center bg-[#394149] text-white rounded-full text-base">
-                        {user?.name.charAt(0).toUpperCase()}
+                        {user?.name?.charAt(0).toUpperCase()}
                       </div>
                       <div className="text-sm">{user?.email}</div>
                     </div>

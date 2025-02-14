@@ -20,6 +20,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "antd/es/typography/Link";
 
 export default function DocumentList() {
+  console.log("DOCUMENT LIST")
   // State
   const { push } = useNavigation();
   const searchParams = useSearchParams();
